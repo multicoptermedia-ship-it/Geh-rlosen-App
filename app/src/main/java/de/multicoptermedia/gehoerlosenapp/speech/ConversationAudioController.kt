@@ -35,7 +35,9 @@ class ConversationAudioController(
             onFinal = onFinal,
             onStatus = onStatus,
             onError = { message ->
-                running.set(false)
+                if (running.getAndSet(false)) {
+                    audioSource.stop()
+                }
                 onError(message)
             },
             onReady = {
