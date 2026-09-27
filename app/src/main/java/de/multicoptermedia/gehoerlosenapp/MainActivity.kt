@@ -36,10 +36,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.lifecycleScope
 import androidx.core.content.ContextCompat
 import de.multicoptermedia.gehoerlosenapp.speech.ConversationAudioController
 import de.multicoptermedia.gehoerlosenapp.speech.SherpaGermanStreamingEngine
 import de.multicoptermedia.gehoerlosenapp.speech.TranscriptSegment
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,6 +54,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 private fun LiveTranscriptScreen() {
     val context = LocalContext.current
+    val activity = context as ComponentActivity
     var hasMicPermission by remember {
         mutableStateOf(ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED)
     }
@@ -72,20 +76,30 @@ private fun LiveTranscriptScreen() {
         partialText = ""
         statusText = "Starte Offline-Erkennung …"
         controller.start(
-            onPartial = { text -> partialText = text },
+            onPartial = { text ->
+                activity.lifecycleScope.launch(Dispatchers.Main.immediate) { partialText = text }
+            },
             onFinal = { text ->
-                if (text.isNotBlank()) transcript = transcript + TranscriptSegment(text = text)
-                partialText = ""
+                activity.lifecycleScope.launch(Dispatchers.Main.immediate) {
+                    if (text.isNotBlank()) transcript = transcript + TranscriptSegment(text = text)
+                    partialText = ""
+                }
             },
             onStatus = { status ->
-                statusText = status
-                isListening = status.startsWith("●")
+                activity.lifecycleScope.launch(Dispatchers.Main.immediate) {
+                    statusText = status
+                    isListening = status.startsWith("●")
+                }
             },
             onError = { error ->
-                statusText = error
-                isListening = false
+                activity.lifecycleScope.launch(Dispatchers.Main.immediate) {
+                    statusText = error
+                    isListening = false
+                }
             },
-            onLevel = { level -> microphoneLevel = level }
+            onLevel = { level ->
+                activity.lifecycleScope.launch(Dispatchers.Main.immediate) { microphoneLevel = level }
+            }
         )
     }
 
