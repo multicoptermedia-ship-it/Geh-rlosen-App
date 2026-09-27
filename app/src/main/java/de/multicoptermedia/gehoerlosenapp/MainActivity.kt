@@ -145,7 +145,16 @@ private fun LiveTranscriptScreen() {
                     statusText = "Pausiert · App nicht im Vordergrund"
                 }
                 Lifecycle.Event.ON_RESUME -> {
-                    if (!isListening && hasMicPermission && statusText == "Pausiert · App nicht im Vordergrund") {
+                    val permissionNowGranted = ContextCompat.checkSelfPermission(
+                        context,
+                        Manifest.permission.RECORD_AUDIO
+                    ) == PackageManager.PERMISSION_GRANTED
+
+                    if (permissionNowGranted && !hasMicPermission) {
+                        hasMicPermission = true
+                        showPermissionSettings = false
+                        statusText = "Mikrofon freigegeben · Weiter drücken zum Zuhören"
+                    } else if (!isListening && hasMicPermission && statusText == "Pausiert · App nicht im Vordergrund") {
                         statusText = "Pausiert · Weiter drücken zum Zuhören"
                     }
                 }
