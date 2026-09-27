@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
+import android.media.audiofx.NoiseSuppressor
 import java.util.concurrent.atomic.AtomicBoolean
 
 class AndroidPcmAudioSource : PcmAudioSource {
@@ -13,6 +14,7 @@ class AndroidPcmAudioSource : PcmAudioSource {
 
     private val running = AtomicBoolean(false)
     private var audioRecord: AudioRecord? = null
+    private var noiseSuppressor: NoiseSuppressor? = null
     private var worker: Thread? = null
 
     @SuppressLint("MissingPermission")
@@ -53,10 +55,20 @@ class AndroidPcmAudioSource : PcmAudioSource {
             return
         }
 
+        noiseSuppressor = if (NoiseSuppressor.isAvailable()) {
+            runCatching {
+                NoiseSuppressor.create(record.audioSessionId)?.apply { enabled = true }
+            }.getOrNull()
+        } else {
+            null
+        }
+
         try {
             record.startRecording()
         } catch (_: Throwable) {
             running.set(false)
+            noiseSuppressor?.release()
+            noiseSuppressor = null
             record.release()
             audioRecord = null
             onError("Mikrofon konnte nicht gestartet werden")
@@ -65,6 +77,8 @@ class AndroidPcmAudioSource : PcmAudioSource {
 
         if (record.recordingState != AudioRecord.RECORDSTATE_RECORDING) {
             running.set(false)
+            noiseSuppressor?.release()
+            noiseSuppressor = null
             record.release()
             audioRecord = null
             onError("Mikrofon nimmt nicht auf")
@@ -102,12 +116,15 @@ class AndroidPcmAudioSource : PcmAudioSource {
         val wasRunning = running.getAndSet(false)
         val record = audioRecord
         audioRecord = null
+        val suppressor = noiseSuppressor
+        noiseSuppressor = null
 
         if (wasRunning) {
             runCatching { record?.stop() }
         }
         worker?.join(500)
         worker = null
+        runCatching { suppressor?.release() }
         runCatching { record?.release() }
     }
 
