@@ -74,7 +74,9 @@ Ein einfacher Lautstärkeregler trennt Sprache nicht von Störgeräuschen. Gepla
 
 ## Nächste Schritte
 
-- direkte PCM-Mikrofonaufnahme
+- direkte PCM-Mikrofonaufnahme **implementiert**
+- PCM-Audiostream an austauschbare Offline-STT-Schnittstelle **implementiert**
+- laufende RMS-Mikrofonpegelmessung **implementiert**
 - lokale Offline-STT-Engine für Deutsch
 - echte Noise Suppression / Audio-Vorverarbeitung
 - Voice Activity Detection
@@ -93,6 +95,12 @@ Ein einfacher Lautstärkeregler trennt Sprache nicht von Störgeräuschen. Gepla
 Während des normalen Mitlesens folgt die Ansicht automatisch dem neuesten Text. Scrollt der Nutzer nach oben, wechselt die Anzeige in den Nachlesemodus und lässt die gewählte Position in Ruhe, während die Transkription im Hintergrund weiterläuft. Mit **↓ Zum aktuellen Gespräch** springt die Ansicht wieder zum neuesten Text.
 
 Der Verlauf bleibt zunächst nur für die laufende Sitzung im Arbeitsspeicher. Eine dauerhafte Speicherung von Gesprächen soll später nur als bewusst aktivierte Option angeboten werden.
+
+## Aktueller Audio-Unterbau
+
+`ConversationAudioController` verbindet die direkte 16-kHz-Mono-PCM-Aufnahme mit der austauschbaren `OfflineSpeechEngine`. Die PCM-Blöcke werden fortlaufend an die Engine übergeben; parallel wird ohne Netzwerkzugriff ein RMS-Mikrofonpegel berechnet. Die Oberfläche muss dadurch später weder das konkrete Sprachmodell noch die Audioaufnahme kennen.
+
+Solange noch kein lokales Modell eingebunden ist, meldet der Controller dies ausdrücklich und fällt nicht stillschweigend auf eine Cloud-Erkennung zurück.
 
 ## Status
 
