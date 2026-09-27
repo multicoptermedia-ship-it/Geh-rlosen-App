@@ -57,7 +57,9 @@ class ConversationAudioController(
                     },
                     onError = { message ->
                         running.set(false)
+                        audioSource.stop()
                         speechEngine.stop()
+                        onLevel(0f)
                         onError(message)
                     }
                 )
