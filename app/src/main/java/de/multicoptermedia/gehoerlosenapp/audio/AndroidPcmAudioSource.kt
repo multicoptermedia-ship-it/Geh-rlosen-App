@@ -99,15 +99,19 @@ class AndroidPcmAudioSource : PcmAudioSource {
     }
 
     override fun stop() {
-        if (!running.getAndSet(false)) return
-        runCatching { audioRecord?.stop() }
+        val wasRunning = running.getAndSet(false)
+        val record = audioRecord
+        audioRecord = null
+
+        if (wasRunning) {
+            runCatching { record?.stop() }
+        }
         worker?.join(500)
         worker = null
+        runCatching { record?.release() }
     }
 
     override fun release() {
         stop()
-        audioRecord?.release()
-        audioRecord = null
     }
 }
