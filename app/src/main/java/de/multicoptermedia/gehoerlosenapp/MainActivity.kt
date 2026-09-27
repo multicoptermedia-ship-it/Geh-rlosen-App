@@ -36,6 +36,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.core.content.ContextCompat
 import de.multicoptermedia.gehoerlosenapp.speech.ConversationAudioController
 import de.multicoptermedia.gehoerlosenapp.speech.SherpaGermanFastConformerEngine
@@ -54,6 +57,7 @@ class MainActivity : ComponentActivity() {
 private fun LiveTranscriptScreen() {
     val context = LocalContext.current
     val activity = context as ComponentActivity
+    val lifecycleOwner = LocalLifecycleOwner.current
     var hasMicPermission by remember {
         mutableStateOf(ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED)
     }
@@ -117,8 +121,20 @@ private fun LiveTranscriptScreen() {
         } else statusText = "Mikrofon-Zugriff erforderlich"
     }
 
-    DisposableEffect(controller) {
-        onDispose { controller.release() }
+    DisposableEffect(lifecycleOwner, controller) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_STOP) {
+                controller.stop()
+                isListening = false
+                microphoneLevel = 0f
+                statusText = "Pausiert · App nicht im Vordergrund"
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+            controller.release()
+        }
     }
 
     LaunchedEffect(Unit) {
