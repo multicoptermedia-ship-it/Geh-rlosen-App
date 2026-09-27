@@ -28,9 +28,9 @@ Auf dem Hauptbildschirm bleiben bewusst nur die für das Gespräch wichtigen Ele
 
 ## Aktueller Prototyp
 
-Der aktuelle Stand verwendet Androids `SpeechRecognizer`. Er startet nach vorhandener Mikrofonfreigabe automatisch, zeigt Zwischen- und Endergebnisse und setzt Deutsch als Standardsprache. `EXTRA_PREFER_OFFLINE` wird gesetzt.
+Der Gesprächspfad verwendet jetzt die eigene PCM-Audioaufnahme und die lokale `SherpaGermanStreamingEngine`. Androids `SpeechRecognizer` ist aus `MainActivity` entfernt. Die App startet nach vorhandener Mikrofonfreigabe automatisch, verarbeitet Audio lokal und zeigt Streaming-Zwischenergebnisse sowie abgeschlossene Segmente an.
 
-> Androids `SpeechRecognizer` garantiert trotzdem nicht auf jedem Gerät vollständigen Offline-Betrieb. Er ist nur die Prototyp-Engine und wird durch eine kontrollierbare lokale Engine ersetzt.
+Solange die deutschen Modellgewichte noch nicht als App-Assets vorliegen, startet die Transkription bewusst nicht und meldet das fehlende Offline-Modell. Es gibt keinen stillen Cloud-Fallback.
 
 ## Zielarchitektur
 
@@ -70,7 +70,8 @@ Ein einfacher Lautstärkeregler trennt Sprache nicht von Störgeräuschen. Gepla
 - Jetpack Compose
 - Material 3
 - minSdk 26
-- Android `SpeechRecognizer` als temporärer Prototyp
+- sherpa-onnx als lokale Streaming-STT-Laufzeit
+- direkte `AudioRecord`-PCM-Aufnahme mit 16 kHz Mono
 
 ## Nächste Schritte
 
