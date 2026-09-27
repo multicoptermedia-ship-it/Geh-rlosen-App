@@ -30,6 +30,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -45,6 +46,7 @@ import de.multicoptermedia.gehoerlosenapp.speech.SherpaGermanFastConformerEngine
 import de.multicoptermedia.gehoerlosenapp.speech.TranscriptSegment
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.collectLatest
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -155,8 +157,16 @@ private fun LiveTranscriptScreen() {
         if (followLive) scrollState.animateScrollTo(scrollState.maxValue)
     }
 
-    LaunchedEffect(scrollState.isScrollInProgress) {
-        if (scrollState.isScrollInProgress && scrollState.value < scrollState.maxValue - 24) followLive = false
+    LaunchedEffect(scrollState) {
+        var previousValue = scrollState.value
+        snapshotFlow { Triple(scrollState.value, scrollState.maxValue, scrollState.isScrollInProgress) }
+            .collectLatest { (value, maxValue, isScrolling) ->
+                val userMovedUp = isScrolling && value < previousValue
+                if (userMovedUp && value < maxValue - 24) {
+                    followLive = false
+                }
+                previousValue = value
+            }
     }
 
     val speakerColors = listOf(
