@@ -7,7 +7,14 @@ import android.media.MediaRecorder
 import android.media.audiofx.NoiseSuppressor
 import java.util.concurrent.atomic.AtomicBoolean
 
-class AndroidPcmAudioSource : PcmAudioSource {
+enum class AudioProcessingMode {
+    NOISE_SUPPRESSION,
+    ORIGINAL
+}
+
+class AndroidPcmAudioSource(
+    private val processingMode: AudioProcessingMode = AudioProcessingMode.NOISE_SUPPRESSION
+) : PcmAudioSource {
     companion object {
         const val SAMPLE_RATE = 16_000
     }
@@ -55,7 +62,10 @@ class AndroidPcmAudioSource : PcmAudioSource {
             return
         }
 
-        noiseSuppressor = if (NoiseSuppressor.isAvailable()) {
+        noiseSuppressor = if (
+            processingMode == AudioProcessingMode.NOISE_SUPPRESSION &&
+            NoiseSuppressor.isAvailable()
+        ) {
             runCatching {
                 NoiseSuppressor.create(record.audioSessionId)?.apply { enabled = true }
             }.getOrNull()
