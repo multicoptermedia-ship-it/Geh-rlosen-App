@@ -34,11 +34,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import de.multicoptermedia.gehoerlosenapp.speech.SpeakerSegment
 import java.util.Locale
 
 class MainActivity : ComponentActivity() {
@@ -46,9 +51,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             MaterialTheme {
-                Surface(modifier = Modifier.fillMaxSize()) {
-                    LiveTranscriptScreen()
-                }
+                Surface(modifier = Modifier.fillMaxSize()) { LiveTranscriptScreen() }
             }
         }
     }
@@ -65,9 +68,14 @@ private fun LiveTranscriptScreen() {
     }
     var isListening by remember { mutableStateOf(false) }
     var partialText by remember { mutableStateOf("") }
-    var transcript by remember { mutableStateOf(emptyList<String>()) }
+    var transcript by remember { mutableStateOf(emptyList<SpeakerSegment>()) }
     var statusText by remember { mutableStateOf("Starte …") }
     var startAfterPermission by remember { mutableStateOf(false) }
+
+    // Until offline diarization is connected, the prototype recognizer has no
+    // reliable speaker identity. We therefore use "Person 1" rather than
+    // pretending to know gender or inventing speaker changes.
+    val prototypeSpeakerId = 1
 
     val recognizerAvailable = SpeechRecognizer.isRecognitionAvailable(context)
     val speechRecognizer = remember {
@@ -150,10 +158,10 @@ private fun LiveTranscriptScreen() {
             override fun onResults(results: Bundle?) {
                 val result = results
                     ?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
-                    ?.firstOrNull()
-                    ?.trim()
-                    .orEmpty()
-                if (result.isNotEmpty()) transcript = transcript + result
+                    ?.firstOrNull()?.trim().orEmpty()
+                if (result.isNotEmpty()) {
+                    transcript = transcript + SpeakerSegment(prototypeSpeakerId, result)
+                }
                 partialText = ""
                 if (isListening) {
                     statusText = "● Ich höre zu"
@@ -164,8 +172,7 @@ private fun LiveTranscriptScreen() {
             override fun onPartialResults(partialResults: Bundle?) {
                 partialText = partialResults
                     ?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
-                    ?.firstOrNull()
-                    .orEmpty()
+                    ?.firstOrNull().orEmpty()
             }
 
             override fun onEvent(eventType: Int, params: Bundle?) = Unit
@@ -178,9 +185,7 @@ private fun LiveTranscriptScreen() {
     }
 
     LaunchedEffect(Unit) {
-        if (hasMicPermission) {
-            startListening()
-        } else {
+        if (hasMicPermission) startListening() else {
             statusText = "Mikrofon einmalig freigeben"
             permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
         }
@@ -193,17 +198,37 @@ private fun LiveTranscriptScreen() {
         }
     }
 
-    val displayText = buildString {
-        if (transcript.isNotEmpty()) append(transcript.joinToString(separator = "\n\n"))
-        if (partialText.isNotBlank()) {
-            if (isNotEmpty()) append("\n\n")
-            append(partialText)
-        }
-    }.ifBlank { "Gesprochener Text erscheint hier." }
+    val speakerColors = listOf(
+        MaterialTheme.colorScheme.primary,
+        MaterialTheme.colorScheme.tertiary,
+        Color(0xFF00796B),
+        Color(0xFF7B1FA2)
+    )
 
-    Column(
-        modifier = Modifier.fillMaxSize().padding(20.dp)
-    ) {
+    val displayText = buildAnnotatedString {
+        if (transcript.isEmpty() && partialText.isBlank()) {
+            append("Gesprochener Text erscheint hier.")
+        } else {
+            transcript.forEachIndexed { index, segment ->
+                if (index > 0) append("\n\n")
+                val color = speakerColors[(segment.speakerId - 1).mod(speakerColors.size)]
+                withStyle(SpanStyle(color = color, fontWeight = FontWeight.Bold)) {
+                    append("Person " + segment.speakerId + ": ")
+                }
+                withStyle(SpanStyle(color = color)) { append(segment.text) }
+            }
+            if (partialText.isNotBlank()) {
+                if (isNotEmpty()) append("\n\n")
+                val color = speakerColors[(prototypeSpeakerId - 1).mod(speakerColors.size)]
+                withStyle(SpanStyle(color = color, fontWeight = FontWeight.Bold)) {
+                    append("Person " + prototypeSpeakerId + ": ")
+                }
+                withStyle(SpanStyle(color = color)) { append(partialText) }
+            }
+        }
+    }
+
+    Column(modifier = Modifier.fillMaxSize().padding(20.dp)) {
         Text("Gespräch Live", fontSize = 28.sp, fontWeight = FontWeight.Bold)
         Text(statusText, fontSize = 18.sp, modifier = Modifier.padding(top = 6.dp))
         Spacer(Modifier.height(18.dp))
@@ -223,13 +248,9 @@ private fun LiveTranscriptScreen() {
             Button(
                 modifier = Modifier.weight(1f),
                 onClick = {
-                    if (!hasMicPermission) {
-                        permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
-                    } else if (isListening) {
-                        pauseListening()
-                    } else {
-                        startListening()
-                    }
+                    if (!hasMicPermission) permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                    else if (isListening) pauseListening()
+                    else startListening()
                 }
             ) {
                 Text(if (isListening) "Pause" else "Weiter", fontSize = 20.sp)
