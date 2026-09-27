@@ -28,12 +28,13 @@ jobs:
         run: |
           set -euo pipefail
           MODEL_DIR="app/src/main/assets/sherpa-onnx-nemo-stt_de_fastconformer_hybrid_large_pc-int8"
+          MODEL_REVISION="e8069b7f76b407780f1aca3388ec2a53f57a2603"
           mkdir -p "$MODEL_DIR"
           curl --fail --location --retry 3 \
-            "https://huggingface.co/csukuangfj/sherpa-onnx-nemo-stt_de_fastconformer_hybrid_large_pc-int8/resolve/main/model.int8.onnx" \
+            "https://huggingface.co/csukuangfj/sherpa-onnx-nemo-stt_de_fastconformer_hybrid_large_pc-int8/resolve/${MODEL_REVISION}/model.int8.onnx" \
             --output "$MODEL_DIR/model.int8.onnx"
           curl --fail --location --retry 3 \
-            "https://huggingface.co/csukuangfj/sherpa-onnx-nemo-stt_de_fastconformer_hybrid_large_pc-int8/resolve/main/tokens.txt" \
+            "https://huggingface.co/csukuangfj/sherpa-onnx-nemo-stt_de_fastconformer_hybrid_large_pc-int8/resolve/${MODEL_REVISION}/tokens.txt" \
             --output "$MODEL_DIR/tokens.txt"
           curl --fail --location --retry 3 \
             "https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/silero_vad.onnx" \
