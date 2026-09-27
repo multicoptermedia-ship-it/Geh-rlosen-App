@@ -31,7 +31,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -144,14 +143,11 @@ private fun LiveTranscriptScreen() {
         if (scrollState.isScrollInProgress && scrollState.value < scrollState.maxValue - 24) followLive = false
     }
 
-    fun speakerColor(id: Int?): Color = when (id) {
-        0 -> MaterialTheme.colorScheme.primary
-        1 -> MaterialTheme.colorScheme.tertiary
-        2 -> MaterialTheme.colorScheme.secondary
-        else -> MaterialTheme.colorScheme.onSurface
-    }
-
-    fun speakerLabel(id: Int?) = id?.let { "Person " + (it + 1) } ?: "Sprecher unbekannt"
+    val speakerColors = listOf(
+        MaterialTheme.colorScheme.primary,
+        MaterialTheme.colorScheme.tertiary,
+        MaterialTheme.colorScheme.secondary
+    )
 
     Column(Modifier.fillMaxSize().padding(20.dp)) {
         Text("Gespräch Live", fontSize = 28.sp, fontWeight = FontWeight.Bold)
@@ -171,13 +167,18 @@ private fun LiveTranscriptScreen() {
             }
             transcript.forEach { segment ->
                 Text(
-                    speakerLabel(segment.speakerId),
-                    color = speakerColor(segment.speakerId),
+                    segment.speakerId?.let { "Person " + (it + 1) } ?: "Sprecher unbekannt",
+                    color = segment.speakerId?.let { speakerColors[it % speakerColors.size] } ?: MaterialTheme.colorScheme.onSurface,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(top = 12.dp)
                 )
-                Text(segment.text, color = speakerColor(segment.speakerId), fontSize = 32.sp, lineHeight = 42.sp)
+                Text(
+                    segment.text,
+                    color = segment.speakerId?.let { speakerColors[it % speakerColors.size] } ?: MaterialTheme.colorScheme.onSurface,
+                    fontSize = 32.sp,
+                    lineHeight = 42.sp
+                )
             }
             if (partialText.isNotBlank()) {
                 Text("Sprecher unbekannt", fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 12.dp))
