@@ -83,7 +83,7 @@ class SherpaGermanFastConformerEngine(
                         sileroVadModelConfig = SileroVadModelConfig(
                             model = VAD_MODEL,
                             threshold = 0.5F,
-                            minSilenceDuration = 0.35F,
+                            minSilenceDuration = 0.25F,
                             minSpeechDuration = 0.20F,
                             windowSize = 512,
                             maxSpeechDuration = 12.0F
