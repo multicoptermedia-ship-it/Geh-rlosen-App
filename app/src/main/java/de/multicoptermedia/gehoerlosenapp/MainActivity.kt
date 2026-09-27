@@ -35,6 +35,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -44,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import de.multicoptermedia.gehoerlosenapp.speech.SpeakerSegment
+import de.multicoptermedia.gehoerlosenapp.speech.TranscriptSegment
 import java.util.Locale
 
 class MainActivity : ComponentActivity() {
@@ -233,12 +235,39 @@ private fun LiveTranscriptScreen() {
         Text(statusText, fontSize = 18.sp, modifier = Modifier.padding(top = 6.dp))
         Spacer(Modifier.height(18.dp))
 
-        Text(
-            text = displayText,
-            fontSize = 32.sp,
-            lineHeight = 42.sp,
+        Column(
             modifier = Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState())
-        )
+        ) {
+            if (transcript.isEmpty() && partialText.isBlank()) {
+                Text("Gesprochener Text erscheint hier.", fontSize = 32.sp, lineHeight = 42.sp)
+            }
+
+            transcript.forEach { segment ->
+                Text(
+                    text = speakerLabel(segment.speakerId),
+                    color = speakerColor(segment.speakerId),
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(top = 12.dp)
+                )
+                Text(
+                    text = segment.text,
+                    color = speakerColor(segment.speakerId),
+                    fontSize = 32.sp,
+                    lineHeight = 42.sp
+                )
+            }
+
+            if (partialText.isNotBlank()) {
+                Text(
+                    text = "Sprecher unbekannt",
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(top = 12.dp)
+                )
+                Text(text = partialText, fontSize = 32.sp, lineHeight = 42.sp)
+            }
+        }
 
         Spacer(Modifier.height(16.dp))
         Row(
