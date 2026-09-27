@@ -12,7 +12,7 @@ Diese Testfassung prüft die Kernidee „Öffnen → Lesen“ auf einem echten A
 ## Testdatei
 - APK: `Gespraech-Live-0.2.0-offline-test.apk`
 - Build-Commit: `3bd25d860de5d80814ced4bac5b1c8cf7e30ea37`
-- GitHub-Artefakt SHA-256: `27ec6c705c0a27bcebddcc4d84e5cf72dc33ccf5147df43f71eb5cd64f4f004a`
+- Die Datei `Gespraech-Live-0.2.0-offline-test.apk.sha256` enthält die vom Build berechnete SHA-256-Prüfsumme der APK selbst.
 
 ## Kernprüfung
 - Nach dem Öffnen soll die lokale Offline-Erkennung starten.
