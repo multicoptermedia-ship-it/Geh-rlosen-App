@@ -52,6 +52,6 @@ Je einen kurzen Test durchführen:
 - TV-Sprache: wird ebenfalls erkannt und mitgeschrieben
 - Beobachtung: Teilweise spürbare Verzögerung bis zur Textausgabe
 - Sprechertrennung: noch nicht implementiert; derzeit erscheint „Sprecher unbekannt“
-- Folgemaßnahme: VAD-Abschlussstille von 0,35 s auf 0,25 s reduziert; Vergleich auf demselben Gerät vorgesehen
+- A/B-Test der VAD-Abschlussstille: 0,25 s erkannte auf dem Android-11-Testgerät weniger Text. 0,35 s war zuverlässiger und wurde deshalb wiederhergestellt.
 
 Testfassung: 0.2.0
