@@ -1,25 +1,41 @@
 # Gespräch Live
 
-Android-App für Live-Untertitel in Gesprächen – mit dem Ziel, gehörlosen und schwerhörigen Menschen die Teilnahme an gesprochenen Gesprächen zu erleichtern.
+Android-App für möglichst unmittelbare Live-Untertitel in Gesprächen. Ziel ist eine Bedienung, die auch in Stresssituationen möglichst wenig Interaktion verlangt.
+
+## Bedienprinzip: Öffnen → Lesen
+
+Nach der einmaligen Android-Mikrofonfreigabe soll der normale Ablauf nur noch sein:
+
+1. App antippen.
+2. Die App beginnt automatisch zuzuhören.
+3. Gesprochener Text erscheint groß auf dem Bildschirm.
+
+Es ist **kein Flugmodus** nötig. Eine vorhandene Internetverbindung darf bestehen, aber die Zielarchitektur benötigt sie für die Transkription nicht. WLAN- oder Mobilfunkausfall soll den Gesprächsmodus nicht beeinflussen.
+
+Auf dem Hauptbildschirm bleiben bewusst nur die für das Gespräch wichtigen Elemente: großer Live-Text, ein klarer Hörstatus, Pause/Weiter und Text löschen. Technische Optionen wie Empfindlichkeit oder Noise Suppression gehören später in die Einstellungen und werden gespeichert.
 
 ## Kernanforderungen
 
-- **Offline zuerst:** Transkription soll ohne Internet funktionieren.
-- **Datenschutz:** Audio soll für die Offline-Transkription auf dem Gerät bleiben.
-- **Geringe Verzögerung:** Text erscheint möglichst schon während des Sprechens.
-- **Gute Lesbarkeit:** große Schrift und reduzierte Bedienung.
-- **Robust bei Umgebungslärm:** Pegelanzeige, Empfindlichkeit, Noise Suppression und VAD.
+- Offline-Transkription ohne Internetabhängigkeit
+- Audioverarbeitung lokal auf dem Gerät
+- möglichst geringe Verzögerung
+- große, kontrastreiche Schrift
+- sehr wenige Bedienhandlungen
+- automatische Aufnahme beim App-Start
+- robuste Erkennung bei Umgebungslärm
 
 ## Aktueller Prototyp
 
-Der aktuelle Stand verwendet Androids `SpeechRecognizer`: Start/Stop, Deutsch, Zwischenergebnisse, Gesprächsverlauf und große Textdarstellung.
+Der aktuelle Stand verwendet Androids `SpeechRecognizer`. Er startet nach vorhandener Mikrofonfreigabe automatisch, zeigt Zwischen- und Endergebnisse und setzt Deutsch als Standardsprache. `EXTRA_PREFER_OFFLINE` wird gesetzt.
 
-> Wichtig: Androids `SpeechRecognizer` garantiert nicht auf jedem Gerät vollständigen Offline-Betrieb. Er bleibt deshalb nur die Prototyp-Engine.
+> Androids `SpeechRecognizer` garantiert trotzdem nicht auf jedem Gerät vollständigen Offline-Betrieb. Er ist nur die Prototyp-Engine und wird durch eine kontrollierbare lokale Engine ersetzt.
 
 ## Zielarchitektur
 
 ```text
-Mikrofon
+App öffnen
+   ↓
+Mikrofon automatisch aktiv
    ↓
 direkte PCM-Audioaufnahme
    ↓
@@ -34,13 +50,7 @@ Live-Untertitel
 
 ## Mikrofon und Hintergrundgeräusche
 
-Ein Lautstärkeregler allein trennt Sprache nicht von Störgeräuschen. Vorgesehen sind deshalb:
-
-1. **Pegelanzeige** – zeigt den aktuellen Mikrofoneingang.
-2. **Empfindlichkeit** – steuert die spätere Sprach-/Aktivitätsschwelle.
-3. **Noise Suppression** – reduziert geeignete Hintergrundgeräusche.
-4. **VAD** – erkennt Sprachabschnitte und Stille.
-5. **Originalsignal** – Filter können deaktiviert werden, falls sie leise Sprecher beeinträchtigen.
+Ein einfacher Lautstärkeregler trennt Sprache nicht von Störgeräuschen. Geplant sind Pegelanzeige, einstellbare Empfindlichkeit, Noise Suppression, VAD und ein ungefilterter Originalmodus. Diese technischen Einstellungen sollen den Hauptbildschirm nicht überladen.
 
 ## Technik
 
@@ -48,21 +58,20 @@ Ein Lautstärkeregler allein trennt Sprache nicht von Störgeräuschen. Vorgeseh
 - Jetpack Compose
 - Material 3
 - minSdk 26
-- Android `SpeechRecognizer` nur als temporärer Prototyp
+- Android `SpeechRecognizer` als temporärer Prototyp
 
 ## Nächste Schritte
 
 - direkte PCM-Mikrofonaufnahme
-- lokale Offline-STT-Engine integrieren und mit Deutsch testen
+- lokale Offline-STT-Engine für Deutsch
 - echte Noise Suppression / Audio-Vorverarbeitung
 - Voice Activity Detection
 - kontinuierliche Transkription
-- Mikrofonpegel und Empfindlichkeitssteuerung
-- automatische Scrollposition
-- einstellbare Schriftgröße und Kontrast
+- automatische Scrollposition zum neuesten Text
+- Einstellungsseite für Mikrofon, Schrift und Kontrast
 - Tablet-Optimierung
-- Offline-Test ohne WLAN und Mobilfunk
+- Offline-Funktionstest ohne Netzwerkverbindung
 
 ## Status
 
-Früher Prototyp / Version 0.2 in Entwicklung. Noch nicht für produktiven oder barrierefreiheitskritischen Einsatz freigegeben.
+Version 0.2 in Entwicklung. Noch nicht für produktiven oder barrierefreiheitskritischen Einsatz freigegeben.
