@@ -23,6 +23,7 @@ Auf dem Hauptbildschirm bleiben bewusst nur die für das Gespräch wichtigen Ele
 - sehr wenige Bedienhandlungen
 - automatische Aufnahme beim App-Start
 - robuste Erkennung bei Umgebungslärm
+- verschiedene Sprecher visuell unterscheiden, ohne Geschlecht oder Identität zu erraten
 
 ## Aktueller Prototyp
 
@@ -42,6 +43,8 @@ direkte PCM-Audioaufnahme
 Rauschunterdrückung / Pegelanpassung
    ↓
 Voice Activity Detection (VAD)
+   ↓
+lokale Sprecher-Diarisierung (Person 1, Person 2, …)
    ↓
 lokale Speech-to-Text-Engine
    ↓
@@ -67,6 +70,7 @@ Ein einfacher Lautstärkeregler trennt Sprache nicht von Störgeräuschen. Gepla
 - echte Noise Suppression / Audio-Vorverarbeitung
 - Voice Activity Detection
 - kontinuierliche Transkription
+- lokale Speaker-Diarization: Sprecherwechsel erkennen und farblich/mit Person-Nummer markieren
 - automatische Scrollposition zum neuesten Text
 - Einstellungsseite für Mikrofon, Schrift und Kontrast
 - Tablet-Optimierung
@@ -75,3 +79,12 @@ Ein einfacher Lautstärkeregler trennt Sprache nicht von Störgeräuschen. Gepla
 ## Status
 
 Version 0.2 in Entwicklung. Noch nicht für produktiven oder barrierefreiheitskritischen Einsatz freigegeben.
+
+
+## Sprecher unterscheiden
+
+Die App soll Sprecherwechsel sichtbar machen. Erkannte Stimmen erhalten stabile neutrale Kennzeichnungen wie **Person 1**, **Person 2** usw. und jeweils eine gut unterscheidbare Textfarbe. Farbe wird immer zusätzlich durch die Person-Nummer ergänzt, damit die Information nicht allein von Farbwahrnehmung abhängt.
+
+Die Funktion soll **keine** automatische Zuordnung zu „männlich“ oder „weiblich“ vornehmen. Ziel ist ausschließlich die für das Gespräch relevante Information: Spricht dieselbe Person weiter oder hat der Sprecher gewechselt?
+
+Der aktuelle Prototyp kennt noch keine verlässliche Sprecher-ID und zeigt deshalb zunächst Person 1. Die echte Zuordnung folgt mit der lokalen Diarisierungs-Engine.
