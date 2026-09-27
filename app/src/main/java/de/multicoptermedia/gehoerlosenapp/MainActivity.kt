@@ -248,7 +248,7 @@ private fun LiveTranscriptScreen() {
         }
 
         Text(
-            "powered by MCM-Dronetech GmbH",
+            "powered by MCM-Dronetech GmbH · Testversion 0.2.0",
             fontSize = 12.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(top = 10.dp)
