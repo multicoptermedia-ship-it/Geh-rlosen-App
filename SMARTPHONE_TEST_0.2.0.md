@@ -45,4 +45,13 @@ Je einen kurzen Test durchführen:
 - ruhige oder laute Umgebung
 - ob Pause/Weiter und App-Wechsel funktioniert haben
 
+## Erster Praxistest
+- Betriebssystem: Android 11
+- Installation: erfolgreich
+- Deutsche Sprache: wird erkannt und als Text angezeigt
+- TV-Sprache: wird ebenfalls erkannt und mitgeschrieben
+- Beobachtung: Teilweise spürbare Verzögerung bis zur Textausgabe
+- Sprechertrennung: noch nicht implementiert; derzeit erscheint „Sprecher unbekannt“
+- Folgemaßnahme: VAD-Abschlussstille von 0,35 s auf 0,25 s reduziert; Vergleich auf demselben Gerät vorgesehen
+
 Testfassung: 0.2.0
