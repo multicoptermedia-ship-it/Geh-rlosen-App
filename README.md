@@ -23,6 +23,7 @@ Auf dem Hauptbildschirm bleiben bewusst nur die für das Gespräch wichtigen Ele
 - sehr wenige Bedienhandlungen
 - automatische Aufnahme beim App-Start
 - robuste Erkennung bei Umgebungslärm
+- visuelle Unterscheidung verschiedener Sprecher durch Farbe **und** Beschriftung
 - verschiedene Sprecher visuell unterscheiden, ohne Geschlecht oder Identität zu erraten
 
 ## Aktueller Prototyp
@@ -51,6 +52,14 @@ lokale Speech-to-Text-Engine
 Live-Untertitel
 ```
 
+## Sprecher unterscheiden
+
+Die App soll lokal erkennen, ob aufeinanderfolgende Sprachabschnitte von derselben oder einer anderen Person stammen. Jeder erkannte Sprecher erhält eine stabile Kennzeichnung wie **Person 1**, **Person 2** usw. und zusätzlich eine unterscheidbare Textfarbe.
+
+Die Farbe ist nur eine zusätzliche Orientierung: Die Beschriftung bleibt immer sichtbar, damit die Funktion nicht von der Farbwahrnehmung abhängt. Die App leitet aus einer Stimme weder Geschlecht noch Identität ab. Ist keine zuverlässige Zuordnung möglich, wird **Sprecher unbekannt** angezeigt.
+
+Die Oberfläche unterstützt dieses Datenmodell bereits. Die automatische lokale Speaker-Diarization wird im nächsten Schritt an die PCM-Audiopipeline angeschlossen.
+
 ## Mikrofon und Hintergrundgeräusche
 
 Ein einfacher Lautstärkeregler trennt Sprache nicht von Störgeräuschen. Geplant sind Pegelanzeige, einstellbare Empfindlichkeit, Noise Suppression, VAD und ein ungefilterter Originalmodus. Diese technischen Einstellungen sollen den Hauptbildschirm nicht überladen.
@@ -69,6 +78,7 @@ Ein einfacher Lautstärkeregler trennt Sprache nicht von Störgeräuschen. Gepla
 - lokale Offline-STT-Engine für Deutsch
 - echte Noise Suppression / Audio-Vorverarbeitung
 - Voice Activity Detection
+- lokale Speaker-Diarization und stabile Sprecher-IDs
 - kontinuierliche Transkription
 - lokale Speaker-Diarization: Sprecherwechsel erkennen und farblich/mit Person-Nummer markieren
 - automatische Scrollposition zum neuesten Text
