@@ -6,6 +6,9 @@ import com.k2fsa.sherpa.onnx.OfflineModelConfig
 import com.k2fsa.sherpa.onnx.OfflineNemoEncDecCtcModelConfig
 import com.k2fsa.sherpa.onnx.OfflineRecognizer
 import com.k2fsa.sherpa.onnx.OfflineRecognizerConfig
+import com.k2fsa.sherpa.onnx.SileroVadModelConfig
+import com.k2fsa.sherpa.onnx.Vad
+import com.k2fsa.sherpa.onnx.VadModelConfig
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -22,21 +25,21 @@ class SherpaGermanFastConformerEngine(
         const val MODEL_DIR = "sherpa-onnx-nemo-stt_de_fastconformer_hybrid_large_pc-int8"
         private const val MODEL = "$MODEL_DIR/model.int8.onnx"
         private const val TOKENS = "$MODEL_DIR/tokens.txt"
+        private const val VAD_MODEL = "silero_vad.onnx"
         private const val SAMPLE_RATE = 16_000
-        private const val MAX_UTTERANCE_SECONDS = 4
     }
 
     private val executor = Executors.newSingleThreadExecutor()
     private val started = AtomicBoolean(false)
     private var recognizer: OfflineRecognizer? = null
-    private var pending = FloatArray(0)
+    private var vad: Vad? = null
     private var onPartial: (String) -> Unit = {}
     private var onFinal: (String) -> Unit = {}
     private var onStatus: (String) -> Unit = {}
     private var onError: (String) -> Unit = {}
 
     override val isReady: Boolean
-        get() = listOf(MODEL, TOKENS).all(::assetExists)
+        get() = listOf(MODEL, TOKENS, VAD_MODEL).all(::assetExists)
 
     override fun start(
         onPartial: (String) -> Unit,
@@ -74,7 +77,22 @@ class SherpaGermanFastConformerEngine(
                         decodingMethod = "greedy_search"
                     )
                 )
-                pending = FloatArray(0)
+                vad = Vad(
+                    context.assets,
+                    VadModelConfig(
+                        sileroVadModelConfig = SileroVadModelConfig(
+                            model = VAD_MODEL,
+                            threshold = 0.5F,
+                            minSilenceDuration = 0.35F,
+                            minSpeechDuration = 0.20F,
+                            windowSize = 512,
+                            maxSpeechDuration = 12.0F
+                        ),
+                        sampleRate = SAMPLE_RATE,
+                        numThreads = 1,
+                        provider = "cpu"
+                    )
+                )
                 if (started.get()) onReady() else releaseRecognizer()
             } catch (_: Throwable) {
                 started.set(false)
@@ -92,12 +110,17 @@ class SherpaGermanFastConformerEngine(
                 return@execute
             }
 
-            val oldSize = pending.size
-            pending = pending.copyOf(oldSize + samples.size)
-            samples.copyInto(pending, oldSize)
-
-            if (pending.size >= SAMPLE_RATE * MAX_UTTERANCE_SECONDS) {
-                decodePending()
+            try {
+                val detector = vad ?: return@execute
+                detector.acceptWaveform(samples)
+                while (!detector.empty()) {
+                    val segment = detector.front()
+                    decodeSegment(segment.samples)
+                    detector.pop()
+                }
+            } catch (_: Throwable) {
+                started.set(false)
+                onError("Fehler bei der lokalen Spracherkennung")
             }
         }
     }
@@ -105,7 +128,7 @@ class SherpaGermanFastConformerEngine(
     override fun stop() {
         started.set(false)
         executor.execute {
-            decodePending()
+            flushVad()
             releaseRecognizer()
         }
     }
@@ -113,35 +136,45 @@ class SherpaGermanFastConformerEngine(
     override fun release() {
         started.set(false)
         executor.execute {
-            decodePending()
+            flushVad()
             releaseRecognizer()
         }
         executor.shutdown()
     }
 
-    private fun decodePending() {
+    private fun decodeSegment(audio: FloatArray) {
         val r = recognizer ?: return
-        if (pending.isEmpty()) return
+        if (audio.isEmpty()) return
 
-        val audio = pending
-        pending = FloatArray(0)
-        runCatching {
-            val stream = r.createStream()
+        val stream = r.createStream()
+        try {
             stream.acceptWaveform(audio, SAMPLE_RATE)
             r.decode(stream)
             val text = r.getResult(stream).text.trim()
-            stream.release()
             if (text.isNotEmpty()) onFinal(text)
             onPartial("")
-        }.onFailure {
-            onError("Fehler bei der deutschen Offline-Erkennung")
+        } finally {
+            stream.release()
+        }
+    }
+
+    private fun flushVad() {
+        val detector = vad ?: return
+        runCatching {
+            detector.flush()
+            while (!detector.empty()) {
+                val segment = detector.front()
+                decodeSegment(segment.samples)
+                detector.pop()
+            }
         }
     }
 
     private fun releaseRecognizer() {
+        vad?.release()
+        vad = null
         recognizer?.release()
         recognizer = null
-        pending = FloatArray(0)
     }
 
     private fun assetExists(path: String): Boolean =
