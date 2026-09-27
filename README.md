@@ -81,10 +81,18 @@ Ein einfacher Lautstärkeregler trennt Sprache nicht von Störgeräuschen. Gepla
 - lokale Speaker-Diarization und stabile Sprecher-IDs
 - kontinuierliche Transkription
 - lokale Speaker-Diarization: Sprecherwechsel erkennen und farblich/mit Person-Nummer markieren
-- automatische Scrollposition zum neuesten Text
+- Live-Modus scrollt automatisch zum neuesten Text
+- beim manuellen Zurückscrollen bleibt die Leseposition stehen
+- „Zum aktuellen Gespräch“ kehrt mit einem Tipp zu Live zurück
 - Einstellungsseite für Mikrofon, Schrift und Kontrast
 - Tablet-Optimierung
 - Offline-Funktionstest ohne Netzwerkverbindung
+
+## Gesprächsverlauf
+
+Während des normalen Mitlesens folgt die Ansicht automatisch dem neuesten Text. Scrollt der Nutzer nach oben, wechselt die Anzeige in den Nachlesemodus und lässt die gewählte Position in Ruhe, während die Transkription im Hintergrund weiterläuft. Mit **↓ Zum aktuellen Gespräch** springt die Ansicht wieder zum neuesten Text.
+
+Der Verlauf bleibt zunächst nur für die laufende Sitzung im Arbeitsspeicher. Eine dauerhafte Speicherung von Gesprächen soll später nur als bewusst aktivierte Option angeboten werden.
 
 ## Status
 
