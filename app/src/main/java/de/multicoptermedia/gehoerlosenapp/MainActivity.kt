@@ -2,6 +2,9 @@ package de.multicoptermedia.gehoerlosenapp
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -70,6 +73,7 @@ private fun LiveTranscriptScreen() {
     var startAfterPermission by remember { mutableStateOf(false) }
     var followLive by remember { mutableStateOf(true) }
     var microphoneLevel by remember { mutableFloatStateOf(0f) }
+    var showPermissionSettings by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
 
     val controller = remember {
@@ -118,9 +122,17 @@ private fun LiveTranscriptScreen() {
     val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         hasMicPermission = granted
         if (granted) {
+            showPermissionSettings = false
             startAfterPermission = true
             statusText = "Starte …"
-        } else statusText = "Mikrofon wird zum Lesen von Gesprächen benötigt · Weiter drücken"
+        } else {
+            showPermissionSettings = !activity.shouldShowRequestPermissionRationale(Manifest.permission.RECORD_AUDIO)
+            statusText = if (showPermissionSettings) {
+                "Mikrofon ist blockiert · Bitte in den App-Einstellungen erlauben"
+            } else {
+                "Mikrofon wird zum Lesen von Gesprächen benötigt · Weiter drücken"
+            }
+        }
     }
 
     DisposableEffect(lifecycleOwner, controller) {
@@ -225,6 +237,20 @@ private fun LiveTranscriptScreen() {
                 onClick = { followLive = true },
                 modifier = Modifier.fillMaxWidth().padding(top = 10.dp)
             ) { Text("↓ Zum aktuellen Gespräch", fontSize = 19.sp) }
+        }
+
+        if (showPermissionSettings && !hasMicPermission) {
+            Button(
+                onClick = {
+                    context.startActivity(
+                        Intent(
+                            Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                            Uri.parse("package:" + context.packageName)
+                        )
+                    )
+                },
+                modifier = Modifier.fillMaxWidth().padding(top = 10.dp)
+            ) { Text("App-Einstellungen öffnen", fontSize = 19.sp) }
         }
 
         Spacer(Modifier.height(12.dp))
