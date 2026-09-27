@@ -77,7 +77,8 @@ Ein einfacher Lautstärkeregler trennt Sprache nicht von Störgeräuschen. Gepla
 - direkte PCM-Mikrofonaufnahme **implementiert**
 - PCM-Audiostream an austauschbare Offline-STT-Schnittstelle **implementiert**
 - laufende RMS-Mikrofonpegelmessung **implementiert**
-- lokale Offline-STT-Engine für Deutsch
+- sherpa-onnx deutsche Streaming-Engine **implementiert**
+- deutsche Modellgewichte inklusive Lizenzhinweisen in die App-Assets aufnehmen und auf Geräten testen
 - echte Noise Suppression / Audio-Vorverarbeitung
 - Voice Activity Detection
 - lokale Speaker-Diarization und stabile Sprecher-IDs
@@ -100,7 +101,7 @@ Der Verlauf bleibt zunächst nur für die laufende Sitzung im Arbeitsspeicher. E
 
 `ConversationAudioController` verbindet die direkte 16-kHz-Mono-PCM-Aufnahme mit der austauschbaren `OfflineSpeechEngine`. Die PCM-Blöcke werden fortlaufend an die Engine übergeben; parallel wird ohne Netzwerkzugriff ein RMS-Mikrofonpegel berechnet. Die Oberfläche muss dadurch später weder das konkrete Sprachmodell noch die Audioaufnahme kennen.
 
-Solange noch kein lokales Modell eingebunden ist, meldet der Controller dies ausdrücklich und fällt nicht stillschweigend auf eine Cloud-Erkennung zurück.
+Die sherpa-onnx-Streaming-Engine für das deutsche Kroko-Zipformer-Modell ist als Adapter implementiert. Sie liefert fortlaufend Zwischenergebnisse und schließt Textsegmente über Endpoint-Erkennung ab. Die großen Modellgewichte selbst sind noch nicht im Repository enthalten; fehlen sie, meldet die App dies ausdrücklich und fällt nicht stillschweigend auf eine Cloud-Erkennung zurück.
 
 ## Status
 
