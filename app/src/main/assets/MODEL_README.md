@@ -39,3 +39,22 @@ the same redistribution terms.
 
 For release builds, use only model files whose exact artifact and license have
 been verified. Keep attribution/license notices with any redistributable model.
+
+
+## Preferred redistributable German model
+
+For a freely redistributable build, prefer:
+
+- `sherpa-onnx-nemo-stt_de_fastconformer_hybrid_large_pc-int8`
+- Files: `model.int8.onnx`, `tokens.txt`
+- Upstream model: NVIDIA `stt_de_fastconformer_hybrid_large_pc`
+- Upstream model license: CC-BY-4.0
+- Runtime mode: sherpa-onnx OfflineRecognizer + VAD / simulated streaming
+- Approximate quantized ONNX model size: 132 MB
+
+The application must include the required CC-BY-4.0 attribution/license notice
+when this model is redistributed. Do not replace this with the legacy Kroko
+ONNX weights.
+
+The existing streaming engine remains in source until the VAD/offline path has
+passed Android build and device tests.
