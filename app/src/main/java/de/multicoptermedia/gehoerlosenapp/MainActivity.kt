@@ -38,7 +38,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.lifecycleScope
 import androidx.core.content.ContextCompat
 import de.multicoptermedia.gehoerlosenapp.speech.ConversationAudioController
-import de.multicoptermedia.gehoerlosenapp.speech.SherpaGermanStreamingEngine
+import de.multicoptermedia.gehoerlosenapp.speech.SherpaGermanFastConformerEngine
 import de.multicoptermedia.gehoerlosenapp.speech.TranscriptSegment
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -67,7 +67,7 @@ private fun LiveTranscriptScreen() {
     val scrollState = rememberScrollState()
 
     val controller = remember {
-        ConversationAudioController(speechEngine = SherpaGermanStreamingEngine(context.applicationContext))
+        ConversationAudioController(speechEngine = SherpaGermanFastConformerEngine(context.applicationContext))
     }
 
     fun startListening() {
