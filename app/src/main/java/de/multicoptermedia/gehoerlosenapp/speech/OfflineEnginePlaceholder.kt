@@ -14,7 +14,8 @@ class OfflineEnginePlaceholder : OfflineSpeechEngine {
         onPartial: (String) -> Unit,
         onFinal: (String) -> Unit,
         onStatus: (String) -> Unit,
-        onError: (String) -> Unit
+        onError: (String) -> Unit,
+        onReady: () -> Unit
     ) {
         onStatus("Offline-Sprachmodell wird vorbereitet")
     }
