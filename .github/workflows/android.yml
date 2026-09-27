@@ -43,6 +43,17 @@ jobs:
           test -s "$MODEL_DIR/tokens.txt"
           test -s "app/src/main/assets/silero_vad.onnx"
 
+      - name: Verify privacy manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -q 'android.permission.INTERNET' app/src/main/AndroidManifest.xml; then
+            echo "Privacy check failed: INTERNET permission must not be declared."
+            exit 1
+          fi
+          grep -q 'android.permission.RECORD_AUDIO' app/src/main/AndroidManifest.xml
+          grep -q 'android:allowBackup="false"' app/src/main/AndroidManifest.xml
+
       - name: Assemble debug APK
         run: gradle --no-daemon :app:assembleDebug
 
