@@ -212,5 +212,12 @@ private fun LiveTranscriptScreen() {
                 }
             ) { Text("Text löschen", fontSize = 20.sp) }
         }
+
+        Text(
+            "powered by MCM-Dronetech GmbH",
+            fontSize = 12.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 10.dp)
+        )
     }
 }
