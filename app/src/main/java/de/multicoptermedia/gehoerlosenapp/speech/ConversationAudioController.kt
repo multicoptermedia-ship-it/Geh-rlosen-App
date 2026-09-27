@@ -29,24 +29,39 @@ class ConversationAudioController(
             return
         }
 
-        speechEngine.start(onPartial, onFinal, onStatus, onError)
-        audioSource.start(
-            onSamples = { samples ->
-                if (running.get()) {
-                    var energy = 0.0
-                    for (sample in samples) energy += sample * sample
-                    val rms = if (samples.isEmpty()) 0f else sqrt(energy / samples.size).toFloat()
-                    onLevel(rms.coerceIn(0f, 1f))
-                    speechEngine.acceptAudio(samples, AndroidPcmAudioSource.SAMPLE_RATE)
-                }
-            },
+        onStatus("Offline-Spracherkennung wird geladen …")
+        speechEngine.start(
+            onPartial = onPartial,
+            onFinal = onFinal,
+            onStatus = onStatus,
             onError = { message ->
                 running.set(false)
-                speechEngine.stop()
                 onError(message)
+            },
+            onReady = {
+                if (!running.get()) {
+                    speechEngine.stop()
+                    return@start
+                }
+                audioSource.start(
+                    onSamples = { samples ->
+                        if (running.get()) {
+                            var energy = 0.0
+                            for (sample in samples) energy += sample * sample
+                            val rms = if (samples.isEmpty()) 0f else sqrt(energy / samples.size).toFloat()
+                            onLevel(rms.coerceIn(0f, 1f))
+                            speechEngine.acceptAudio(samples, AndroidPcmAudioSource.SAMPLE_RATE)
+                        }
+                    },
+                    onError = { message ->
+                        running.set(false)
+                        speechEngine.stop()
+                        onError(message)
+                    }
+                )
+                if (running.get()) onStatus("● Offline · Ich höre zu")
             }
         )
-        onStatus("● Ich höre zu")
     }
 
     fun stop() {
