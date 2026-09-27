@@ -53,5 +53,6 @@ Je einen kurzen Test durchführen:
 - Beobachtung: Teilweise spürbare Verzögerung bis zur Textausgabe
 - Sprechertrennung: noch nicht implementiert; derzeit erscheint „Sprecher unbekannt“
 - A/B-Test der VAD-Abschlussstille: 0,25 s erkannte auf dem Android-11-Testgerät weniger Text. 0,35 s war zuverlässiger und wurde deshalb wiederhergestellt.
+- Weiterer Android-11-Praxistest: Sprache wird erkannt. Bei gleichzeitig laufender Hintergrundmusik wird die Erkennung schlechter. Für den vorgesehenen Einsatz wird dies derzeit als akzeptabel bewertet; keine aggressive zusätzliche Musikfilterung geplant.
 
 Testfassung: 0.2.0
