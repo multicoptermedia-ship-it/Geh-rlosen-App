@@ -7,7 +7,8 @@ interface OfflineSpeechEngine {
         onPartial: (String) -> Unit,
         onFinal: (String) -> Unit,
         onStatus: (String) -> Unit,
-        onError: (String) -> Unit
+        onError: (String) -> Unit,
+        onReady: () -> Unit
     )
 
     fun acceptAudio(samples: FloatArray, sampleRate: Int)
