@@ -5,9 +5,14 @@ Diese Testfassung prüft die Kernidee „Öffnen → Lesen“ auf einem echten A
 
 ## Installation
 1. Das GitHub-Actions-Artefakt `gespraech-live-0.2.0-offline-test` herunterladen und entpacken.
-2. `app-debug.apk` auf das Android-Smartphone übertragen.
+2. `Gespraech-Live-0.2.0-offline-test.apk` auf das Android-Smartphone übertragen.
 3. Die APK installieren. Android kann dafür einmalig die Erlaubnis „Unbekannte Apps installieren“ verlangen.
 4. Gespräch Live starten und den Mikrofonzugriff erlauben.
+
+## Testdatei
+- APK: `Gespraech-Live-0.2.0-offline-test.apk`
+- Build-Commit: `3bd25d860de5d80814ced4bac5b1c8cf7e30ea37`
+- GitHub-Artefakt SHA-256: `27ec6c705c0a27bcebddcc4d84e5cf72dc33ccf5147df43f71eb5cd64f4f004a`
 
 ## Kernprüfung
 - Nach dem Öffnen soll die lokale Offline-Erkennung starten.
