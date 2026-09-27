@@ -125,11 +125,19 @@ private fun LiveTranscriptScreen() {
 
     DisposableEffect(lifecycleOwner, controller) {
         val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_STOP) {
-                controller.stop()
-                isListening = false
-                microphoneLevel = 0f
-                statusText = "Pausiert · App nicht im Vordergrund"
+            when (event) {
+                Lifecycle.Event.ON_STOP -> {
+                    controller.stop()
+                    isListening = false
+                    microphoneLevel = 0f
+                    statusText = "Pausiert · App nicht im Vordergrund"
+                }
+                Lifecycle.Event.ON_RESUME -> {
+                    if (!isListening && hasMicPermission && statusText == "Pausiert · App nicht im Vordergrund") {
+                        statusText = "Pausiert · Weiter drücken zum Zuhören"
+                    }
+                }
+                else -> Unit
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
