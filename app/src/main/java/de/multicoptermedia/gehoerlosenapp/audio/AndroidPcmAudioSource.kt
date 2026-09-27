@@ -30,13 +30,19 @@ class AndroidPcmAudioSource : PcmAudioSource {
             return
         }
 
-        val record = AudioRecord(
-            MediaRecorder.AudioSource.VOICE_RECOGNITION,
-            SAMPLE_RATE,
-            AudioFormat.CHANNEL_IN_MONO,
-            AudioFormat.ENCODING_PCM_16BIT,
-            minBuffer * 2
-        )
+        val record = try {
+            AudioRecord(
+                MediaRecorder.AudioSource.VOICE_RECOGNITION,
+                SAMPLE_RATE,
+                AudioFormat.CHANNEL_IN_MONO,
+                AudioFormat.ENCODING_PCM_16BIT,
+                minBuffer * 2
+            )
+        } catch (_: Throwable) {
+            running.set(false)
+            onError("Mikrofon konnte nicht geöffnet werden")
+            return
+        }
         audioRecord = record
 
         if (record.state != AudioRecord.STATE_INITIALIZED) {
@@ -47,9 +53,26 @@ class AndroidPcmAudioSource : PcmAudioSource {
             return
         }
 
-        record.startRecording()
+        try {
+            record.startRecording()
+        } catch (_: Throwable) {
+            running.set(false)
+            record.release()
+            audioRecord = null
+            onError("Mikrofon konnte nicht gestartet werden")
+            return
+        }
+
+        if (record.recordingState != AudioRecord.RECORDSTATE_RECORDING) {
+            running.set(false)
+            record.release()
+            audioRecord = null
+            onError("Mikrofon nimmt nicht auf")
+            return
+        }
+
         worker = Thread {
-            val pcm = ShortArray(minBuffer)
+            val pcm = ShortArray((minBuffer / 2).coerceAtLeast(1))
             try {
                 while (running.get()) {
                     val count = record.read(pcm, 0, pcm.size)
@@ -58,10 +81,14 @@ class AndroidPcmAudioSource : PcmAudioSource {
                         for (i in 0 until count) samples[i] = pcm[i] / 32768.0f
                         onSamples(samples)
                     } else if (count < 0) {
+                        running.set(false)
                         onError("Fehler beim Lesen des Mikrofons: " + count)
                         break
                     }
                 }
+            } catch (_: Throwable) {
+                running.set(false)
+                onError("Mikrofonaufnahme wurde unterbrochen")
             } finally {
                 running.set(false)
             }
