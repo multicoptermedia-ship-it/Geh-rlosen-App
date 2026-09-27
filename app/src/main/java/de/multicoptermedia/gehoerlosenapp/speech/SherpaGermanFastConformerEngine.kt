@@ -96,6 +96,7 @@ class SherpaGermanFastConformerEngine(
                 if (started.get()) onReady() else releaseRecognizer()
             } catch (_: Throwable) {
                 started.set(false)
+                releaseRecognizer()
                 onError("Deutsche Offline-Spracherkennung konnte nicht gestartet werden")
             }
         }
@@ -120,6 +121,7 @@ class SherpaGermanFastConformerEngine(
                 }
             } catch (_: Throwable) {
                 started.set(false)
+                releaseRecognizer()
                 onError("Fehler bei der lokalen Spracherkennung")
             }
         }
