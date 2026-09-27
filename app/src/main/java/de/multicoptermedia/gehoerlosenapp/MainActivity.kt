@@ -120,7 +120,7 @@ private fun LiveTranscriptScreen() {
         if (granted) {
             startAfterPermission = true
             statusText = "Starte …"
-        } else statusText = "Mikrofon-Zugriff erforderlich"
+        } else statusText = "Mikrofon wird zum Lesen von Gesprächen benötigt · Weiter drücken"
     }
 
     DisposableEffect(lifecycleOwner, controller) {
