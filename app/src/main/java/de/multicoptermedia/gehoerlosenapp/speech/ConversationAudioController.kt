@@ -3,6 +3,7 @@ package de.multicoptermedia.gehoerlosenapp.speech
 import de.multicoptermedia.gehoerlosenapp.audio.AndroidPcmAudioSource
 import de.multicoptermedia.gehoerlosenapp.audio.PcmAudioSource
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.math.sqrt
 
 /**
  * Owns the real-time audio path. The UI talks only to this controller and
@@ -18,7 +19,8 @@ class ConversationAudioController(
         onPartial: (String) -> Unit,
         onFinal: (String) -> Unit,
         onStatus: (String) -> Unit,
-        onError: (String) -> Unit
+        onError: (String) -> Unit,
+        onLevel: (Float) -> Unit = {}
     ) {
         if (!running.compareAndSet(false, true)) return
         if (!speechEngine.isReady) {
@@ -31,6 +33,10 @@ class ConversationAudioController(
         audioSource.start(
             onSamples = { samples ->
                 if (running.get()) {
+                    var energy = 0.0
+                    for (sample in samples) energy += sample * sample
+                    val rms = if (samples.isEmpty()) 0f else sqrt(energy / samples.size).toFloat()
+                    onLevel(rms.coerceIn(0f, 1f))
                     speechEngine.acceptAudio(samples, AndroidPcmAudioSource.SAMPLE_RATE)
                 }
             },
