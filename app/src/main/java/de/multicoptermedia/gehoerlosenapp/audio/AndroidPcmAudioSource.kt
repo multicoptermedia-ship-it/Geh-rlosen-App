@@ -132,7 +132,10 @@ class AndroidPcmAudioSource(
         if (wasRunning) {
             runCatching { record?.stop() }
         }
-        worker?.join(500)
+        val captureWorker = worker
+        if (captureWorker != null && captureWorker !== Thread.currentThread()) {
+            captureWorker.join(500)
+        }
         worker = null
         runCatching { suppressor?.release() }
         runCatching { record?.release() }
