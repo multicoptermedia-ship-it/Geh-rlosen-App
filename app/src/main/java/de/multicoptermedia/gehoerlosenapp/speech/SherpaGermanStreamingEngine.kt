@@ -45,7 +45,8 @@ class SherpaGermanStreamingEngine(
         onPartial: (String) -> Unit,
         onFinal: (String) -> Unit,
         onStatus: (String) -> Unit,
-        onError: (String) -> Unit
+        onError: (String) -> Unit,
+        onReady: () -> Unit
     ) {
         if (!started.compareAndSet(false, true)) return
         this.onPartial = onPartial
@@ -80,7 +81,7 @@ class SherpaGermanStreamingEngine(
                 recognizer = OnlineRecognizer(context.assets, config)
                 stream = recognizer?.createStream()
                 lastText = ""
-                onStatus("● Offline · Ich höre zu")
+                onReady()
             } catch (t: Throwable) {
                 started.set(false)
                 onError("Offline-Spracherkennung konnte nicht gestartet werden")
