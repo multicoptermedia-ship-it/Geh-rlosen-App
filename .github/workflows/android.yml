@@ -23,6 +23,25 @@ jobs:
         with:
           gradle-version: "8.9"
 
+      - name: Fetch offline speech models
+        shell: bash
+        run: |
+          set -euo pipefail
+          MODEL_DIR="app/src/main/assets/sherpa-onnx-nemo-stt_de_fastconformer_hybrid_large_pc-int8"
+          mkdir -p "$MODEL_DIR"
+          curl --fail --location --retry 3 \
+            "https://huggingface.co/csukuangfj/sherpa-onnx-nemo-stt_de_fastconformer_hybrid_large_pc-int8/resolve/main/model.int8.onnx" \
+            --output "$MODEL_DIR/model.int8.onnx"
+          curl --fail --location --retry 3 \
+            "https://huggingface.co/csukuangfj/sherpa-onnx-nemo-stt_de_fastconformer_hybrid_large_pc-int8/resolve/main/tokens.txt" \
+            --output "$MODEL_DIR/tokens.txt"
+          curl --fail --location --retry 3 \
+            "https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/silero_vad.onnx" \
+            --output "app/src/main/assets/silero_vad.onnx"
+          test -s "$MODEL_DIR/model.int8.onnx"
+          test -s "$MODEL_DIR/tokens.txt"
+          test -s "app/src/main/assets/silero_vad.onnx"
+
       - name: Assemble debug APK
         run: gradle --no-daemon :app:assembleDebug
 
