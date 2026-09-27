@@ -28,6 +28,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,104 +57,91 @@ class MainActivity : ComponentActivity() {
 @Composable
 private fun LiveTranscriptScreen() {
     val context = LocalContext.current
-
     var hasMicPermission by remember {
         mutableStateOf(
-            ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.RECORD_AUDIO
-            ) == PackageManager.PERMISSION_GRANTED
+            ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) ==
+                PackageManager.PERMISSION_GRANTED
         )
     }
-
     var isListening by remember { mutableStateOf(false) }
     var partialText by remember { mutableStateOf("") }
     var transcript by remember { mutableStateOf(emptyList<String>()) }
-    var statusText by remember { mutableStateOf("Bereit") }
-
-    val permissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        hasMicPermission = granted
-        statusText = if (granted) "Mikrofon freigegeben" else "Mikrofon-Zugriff benötigt"
-    }
+    var statusText by remember { mutableStateOf("Starte …") }
+    var startAfterPermission by remember { mutableStateOf(false) }
 
     val recognizerAvailable = SpeechRecognizer.isRecognitionAvailable(context)
-
     val speechRecognizer = remember {
         if (recognizerAvailable) SpeechRecognizer.createSpeechRecognizer(context) else null
     }
 
     fun recognitionIntent(): Intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-        putExtra(
-            RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-            RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
-        )
+        putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
         putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.GERMANY.toLanguageTag())
         putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
         putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
+        putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
     }
 
     fun startListening() {
         if (!recognizerAvailable || speechRecognizer == null) {
-            statusText = "Keine Spracherkennung auf diesem Gerät verfügbar"
+            statusText = "Spracherkennung nicht verfügbar"
             return
         }
-
-        if (!hasMicPermission) {
-            permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
-            return
-        }
-
+        if (!hasMicPermission) return
         partialText = ""
         isListening = true
-        statusText = "Ich höre zu …"
+        statusText = "● Ich höre zu"
         speechRecognizer.startListening(recognitionIntent())
     }
 
-    fun stopListening() {
-        speechRecognizer?.stopListening()
+    fun pauseListening() {
         isListening = false
-        statusText = "Gestoppt"
+        speechRecognizer?.cancel()
+        statusText = "Pausiert"
+    }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        hasMicPermission = granted
+        if (granted) {
+            startAfterPermission = true
+            statusText = "Starte …"
+        } else {
+            statusText = "Mikrofon-Zugriff erforderlich"
+        }
     }
 
     DisposableEffect(speechRecognizer) {
         val listener = object : RecognitionListener {
-            override fun onReadyForSpeech(params: Bundle?) {
-                statusText = "Sprich jetzt"
-            }
-
-            override fun onBeginningOfSpeech() {
-                statusText = "Sprache erkannt"
-            }
-
+            override fun onReadyForSpeech(params: Bundle?) { statusText = "● Ich höre zu" }
+            override fun onBeginningOfSpeech() { statusText = "● Sprache erkannt" }
             override fun onRmsChanged(rmsdB: Float) = Unit
             override fun onBufferReceived(buffer: ByteArray?) = Unit
-            override fun onEndOfSpeech() {
-                statusText = "Verarbeite …"
-            }
+            override fun onEndOfSpeech() { statusText = "● Verarbeite Sprache …" }
 
             override fun onError(error: Int) {
                 partialText = ""
-
-                if (isListening) {
-                    statusText = when (error) {
-                        SpeechRecognizer.ERROR_NO_MATCH,
-                        SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "Warte auf Sprache …"
-                        SpeechRecognizer.ERROR_NETWORK,
-                        SpeechRecognizer.ERROR_NETWORK_TIMEOUT -> "Netzwerkfehler bei der Spracherkennung"
-                        SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "Mikrofon-Zugriff fehlt"
-                        else -> "Spracherkennung kurz unterbrochen"
-                    }
-
-                    if (
-                        error == SpeechRecognizer.ERROR_NO_MATCH ||
-                        error == SpeechRecognizer.ERROR_SPEECH_TIMEOUT ||
-                        error == SpeechRecognizer.ERROR_CLIENT
-                    ) {
+                if (!isListening) return
+                when (error) {
+                    SpeechRecognizer.ERROR_NO_MATCH,
+                    SpeechRecognizer.ERROR_SPEECH_TIMEOUT,
+                    SpeechRecognizer.ERROR_CLIENT -> {
+                        statusText = "● Ich höre zu"
                         speechRecognizer?.cancel()
                         speechRecognizer?.startListening(recognitionIntent())
-                    } else {
+                    }
+                    SpeechRecognizer.ERROR_NETWORK,
+                    SpeechRecognizer.ERROR_NETWORK_TIMEOUT -> {
+                        statusText = "Offline-Sprachmodell noch nicht verfügbar"
+                        isListening = false
+                    }
+                    SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> {
+                        statusText = "Mikrofon-Zugriff erforderlich"
+                        isListening = false
+                    }
+                    else -> {
+                        statusText = "Spracherkennung unterbrochen"
                         isListening = false
                     }
                 }
@@ -165,15 +153,10 @@ private fun LiveTranscriptScreen() {
                     ?.firstOrNull()
                     ?.trim()
                     .orEmpty()
-
-                if (result.isNotEmpty()) {
-                    transcript = transcript + result
-                }
-
+                if (result.isNotEmpty()) transcript = transcript + result
                 partialText = ""
-
                 if (isListening) {
-                    statusText = "Ich höre weiter zu …"
+                    statusText = "● Ich höre zu"
                     speechRecognizer?.startListening(recognitionIntent())
                 }
             }
@@ -187,59 +170,52 @@ private fun LiveTranscriptScreen() {
 
             override fun onEvent(eventType: Int, params: Bundle?) = Unit
         }
-
         speechRecognizer?.setRecognitionListener(listener)
-
         onDispose {
             speechRecognizer?.cancel()
             speechRecognizer?.destroy()
         }
     }
 
-    val displayText = buildString {
-        if (transcript.isNotEmpty()) {
-            append(transcript.joinToString(separator = "\n\n"))
+    LaunchedEffect(Unit) {
+        if (hasMicPermission) {
+            startListening()
+        } else {
+            statusText = "Mikrofon einmalig freigeben"
+            permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
         }
+    }
 
+    LaunchedEffect(startAfterPermission) {
+        if (startAfterPermission && hasMicPermission) {
+            startAfterPermission = false
+            startListening()
+        }
+    }
+
+    val displayText = buildString {
+        if (transcript.isNotEmpty()) append(transcript.joinToString(separator = "\n\n"))
         if (partialText.isNotBlank()) {
             if (isNotEmpty()) append("\n\n")
             append(partialText)
         }
-    }.ifBlank {
-        "Der erkannte Text erscheint hier."
-    }
+    }.ifBlank { "Gesprochener Text erscheint hier." }
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(20.dp)
+        modifier = Modifier.fillMaxSize().padding(20.dp)
     ) {
-        Text(
-            text = "Gespräch Live",
-            fontSize = 30.sp,
-            fontWeight = FontWeight.Bold
-        )
-
-        Text(
-            text = statusText,
-            fontSize = 16.sp,
-            modifier = Modifier.padding(top = 6.dp)
-        )
-
-        Spacer(modifier = Modifier.height(20.dp))
+        Text("Gespräch Live", fontSize = 28.sp, fontWeight = FontWeight.Bold)
+        Text(statusText, fontSize = 18.sp, modifier = Modifier.padding(top = 6.dp))
+        Spacer(Modifier.height(18.dp))
 
         Text(
             text = displayText,
-            fontSize = 30.sp,
-            lineHeight = 39.sp,
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
+            fontSize = 32.sp,
+            lineHeight = 42.sp,
+            modifier = Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState())
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
-
+        Spacer(Modifier.height(16.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -247,21 +223,25 @@ private fun LiveTranscriptScreen() {
             Button(
                 modifier = Modifier.weight(1f),
                 onClick = {
-                    if (isListening) stopListening() else startListening()
+                    if (!hasMicPermission) {
+                        permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                    } else if (isListening) {
+                        pauseListening()
+                    } else {
+                        startListening()
+                    }
                 }
             ) {
-                Text(if (isListening) "Stoppen" else "Zuhören", fontSize = 18.sp)
+                Text(if (isListening) "Pause" else "Weiter", fontSize = 20.sp)
             }
-
             OutlinedButton(
                 modifier = Modifier.weight(1f),
                 onClick = {
                     transcript = emptyList()
                     partialText = ""
-                    statusText = if (isListening) "Ich höre zu …" else "Bereit"
                 }
             ) {
-                Text("Text löschen", fontSize = 18.sp)
+                Text("Text löschen", fontSize = 20.sp)
             }
         }
     }
