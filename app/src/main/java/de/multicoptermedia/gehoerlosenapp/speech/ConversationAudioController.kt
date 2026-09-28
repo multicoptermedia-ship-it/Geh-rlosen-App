@@ -17,7 +17,8 @@ class ConversationAudioController(
 
     fun start(
         onPartial: (String) -> Unit,
-        onFinal: (String) -> Unit,
+        onFinal: (RecognizedUtterance) -> Unit,
+        onSpeaker: (SpeakerAssignment) -> Unit,
         onStatus: (String) -> Unit,
         onError: (String) -> Unit,
         onLevel: (Float) -> Unit = {}
@@ -33,6 +34,7 @@ class ConversationAudioController(
         speechEngine.start(
             onPartial = onPartial,
             onFinal = onFinal,
+            onSpeaker = onSpeaker,
             onStatus = onStatus,
             onError = { message ->
                 if (running.getAndSet(false)) {
