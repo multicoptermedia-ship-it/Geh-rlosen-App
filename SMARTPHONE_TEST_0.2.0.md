@@ -56,4 +56,6 @@ Je einen kurzen Test durchführen:
 - Weiterer Android-11-Praxistest: Sprache wird erkannt. Bei gleichzeitig laufender Hintergrundmusik wird die Erkennung schlechter. Für den vorgesehenen Einsatz wird dies derzeit als akzeptabel bewertet; keine aggressive zusätzliche Musikfilterung geplant.
 - Dialekt-Praxistest: Dialekt wird teilweise schlechter erkannt als Standarddeutsch. Dies wird für den aktuellen Entwicklungsstand als erwartete Einschränkung akzeptiert und ist derzeit kein Blocker.
 
+- Sprechertrennung – erster Gerätetest: Person 2 wurde erkannt; der erste Sprecher blieb zunächst als „Sprecher unbekannt“ markiert. Text wird bei langsam gesprochenem Standarddeutsch gut erkannt. Die zusätzliche Analyse verursacht erwartungsgemäß eine sichtbare Zeitverschiebung.
+
 Testfassung: 0.2.0
