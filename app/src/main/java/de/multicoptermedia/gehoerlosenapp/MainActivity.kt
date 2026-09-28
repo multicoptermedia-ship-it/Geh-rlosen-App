@@ -234,7 +234,7 @@ private fun LiveTranscriptScreen() {
         Text(statusText, fontSize = 18.sp, modifier = Modifier.padding(top = 6.dp))
         if (isListening) {
             Text(
-                text = if (microphoneLevel > 0.015f) "Mikrofon: Sprache/Ton" else "Mikrofon: leise",
+                text = "● Zuhören",
                 fontSize = 14.sp,
                 modifier = Modifier.padding(top = 2.dp)
             )
