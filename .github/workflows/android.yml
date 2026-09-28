@@ -67,14 +67,14 @@ jobs:
         shell: bash
         run: |
           cd app/build/outputs/apk/debug
-          cp app-debug.apk Gespraech-Live-0.2.0-offline-test.apk
-          sha256sum Gespraech-Live-0.2.0-offline-test.apk > Gespraech-Live-0.2.0-offline-test.apk.sha256
+          cp app-debug.apk Gespraech-Live-0.2.1-offline-test.apk
+          sha256sum Gespraech-Live-0.2.1-offline-test.apk > Gespraech-Live-0.2.1-offline-test.apk.sha256
 
       - name: Upload smartphone test APK
         uses: actions/upload-artifact@v4
         with:
-          name: gespraech-live-0.2.0-offline-test
+          name: gespraech-live-0.2.1-offline-test
           path: |
-            app/build/outputs/apk/debug/Gespraech-Live-0.2.0-offline-test.apk
-            app/build/outputs/apk/debug/Gespraech-Live-0.2.0-offline-test.apk.sha256
+            app/build/outputs/apk/debug/Gespraech-Live-0.2.1-offline-test.apk
+            app/build/outputs/apk/debug/Gespraech-Live-0.2.1-offline-test.apk.sha256
           if-no-files-found: error
