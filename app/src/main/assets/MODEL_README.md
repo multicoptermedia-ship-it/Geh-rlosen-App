@@ -1,60 +1,38 @@
-# Deutsches Offline-Sprachmodell
+# Offline-Modelle – Release Candidate 0.2.1
 
-Die Streaming-Engine erwartet dieses Verzeichnis:
+## Deutsche Spracherkennung
 
-```
-app/src/main/assets/sherpa-onnx-streaming-zipformer-de-kroko-2025-08-06/
-├── encoder.onnx
-├── decoder.onnx
-├── joiner.onnx
-└── tokens.txt
-```
+Verwendet wird:
+- sherpa-onnx-nemo-stt_de_fastconformer_hybrid_large_pc-int8
+- model.int8.onnx
+- tokens.txt
+- Upstream: NVIDIA stt_de_fastconformer_hybrid_large_pc
+- Lizenz des Upstream-Modells: CC BY 4.0
+- Runtime: sherpa-onnx OfflineRecognizer
 
-Die Modelldateien werden absichtlich nicht als Platzhalter eingecheckt. Ohne alle vier
-Dateien meldet die App, dass das deutsche Offline-Sprachmodell fehlt, statt auf eine
-Netzwerk-/Cloud-Erkennung auszuweichen.
+Die CI lädt die Modellartefakte für den Build. Es gibt keinen Cloud-Fallback.
 
-Modell-ID:
-`sherpa-onnx-streaming-zipformer-de-kroko-2025-08-06`
+## Voice Activity Detection
 
-Die Dateinamen und die Zipformer2-Konfiguration entsprechen der sherpa-onnx
-Kotlin-Konfiguration für dieses deutsche Streaming-Modell.
+- silero_vad.onnx
+- Silero VAD
+- Lizenz: MIT
 
-Vor einer Veröffentlichung der APK müssen die Modellgewichte samt Lizenzhinweisen
-bewusst in die Distribution aufgenommen und auf realen Android-Geräten hinsichtlich
-Latenz, Speicherverbrauch und Erkennungsqualität geprüft werden.
+Im realen Android-11-Test war eine Abschlussstille von 0,35 s zuverlässiger als 0,25 s. Diese Einstellung bleibt für 0.2.1 unverändert.
 
+## Sprecheranalyse
 
-## License safety
+- wespeaker_en_voxceleb_resnet34.onnx
+- WeSpeaker / VoxCeleb ResNet34
+- Verwendung ausschließlich für neutrale sitzungsbezogene Sprechergruppierung (Person 1, Person 2, …)
+- keine Namens-, Identitäts- oder Geschlechtsbestimmung
 
-Do not bundle or redistribute the legacy Kroko `.onnx` weights referenced by
-`sherpa-onnx-streaming-zipformer-de-kroko-2025-08-06` without obtaining the
-appropriate model license.
+Die Sprechergruppierung ist bewusst eine Zusatzfunktion. Falsche zusätzliche Person-IDs dürfen die Texttranskription nicht blockieren.
 
-Banafo's September 2025 model-card history distinguishes the newer Community
-`.data` weights (CC-BY-SA) from the older `.onnx` exports (non-commercial
-only at that time). The current Kroko model card describes Community models as
-CC-BY-SA, but that does not retroactively prove that the legacy ONNX export has
-the same redistribution terms.
+## Nicht verwenden
 
-For release builds, use only model files whose exact artifact and license have
-been verified. Keep attribution/license notices with any redistributable model.
+Die ältere Kroko-Streaming-ONNX-Variante wird für den Release Candidate nicht gebündelt. Sie bleibt wegen der früher festgestellten Lizenzunsicherheit ausdrücklich außerhalb der Distribution.
 
+## Veröffentlichung
 
-## Preferred redistributable German model
-
-For a freely redistributable build, prefer:
-
-- `sherpa-onnx-nemo-stt_de_fastconformer_hybrid_large_pc-int8`
-- Files: `model.int8.onnx`, `tokens.txt`
-- Upstream model: NVIDIA `stt_de_fastconformer_hybrid_large_pc`
-- Upstream model license: CC-BY-4.0
-- Runtime mode: sherpa-onnx OfflineRecognizer + VAD / simulated streaming
-- Approximate quantized ONNX model size: 132 MB
-
-The application must include the required CC-BY-4.0 attribution/license notice
-when this model is redistributed. Do not replace this with the legacy Kroko
-ONNX weights.
-
-The existing streaming engine remains in source until the VAD/offline path has
-passed Android build and device tests.
+Die wesentlichen Hinweise stehen in THIRD_PARTY_NOTICES.txt bzw. THIRD_PARTY_NOTICES.md. Vor einer öffentlichen Veröffentlichung müssen die vollständigen Lizenz- und Attributionsanforderungen der tatsächlich ausgelieferten Artefakte nochmals geprüft werden.
