@@ -17,7 +17,7 @@ Bestätigte Funktionen:
 
 Bei einer manuellen Installation des Test-APKs trat einmalig ein Installationsproblem auf. Nach einem Neustart des Android-11-Tablets ließ sich die App installieren und funktionierte anschließend normal. Der Fehler ist bisher nicht reproduziert und wird deshalb als Beobachtung dokumentiert, nicht als bestätigter App-Fehler.
 
-Für den nächsten Abnahmetest wird eine saubere Neuinstallation nach vorheriger Deinstallation geprüft.
+Der anschließende Abnahmetest nach vollständiger Deinstallation war erfolgreich: Die 0.2.1-Test-APK ließ sich frisch installieren und die App funktionierte. Die Spracherkennung arbeitete wie erwartet; die Sprecherzuordnung wurde im erneuten Praxistest sogar als verbessert wahrgenommen und ordnete Sprecher erfolgreich zu.
 
 ## Beobachtungen / bekannte Einschränkungen
 
@@ -39,5 +39,7 @@ Für den nächsten Abnahmetest wird eine saubere Neuinstallation nach vorheriger
 Die 0,35-s-Abschlussstille wurde im A/B-Gerätetest gegenüber 0,25 s als zuverlässiger bestätigt und wird für diesen Release Candidate nicht verändert.
 
 ## Abnahmestatus
+
+**Neuinstallation auf dem Android-11-Testgerät: bestanden.**
 
 Die Kernfunktion „Öffnen → Lesen“ funktioniert im Praxistest. Weitere Arbeiten an 0.2.1 konzentrieren sich auf Veröffentlichung, Datenschutz, Lizenz-/Attributionsprüfung und Release-Paketierung; keine experimentellen Änderungen an der funktionierenden Spracherkennung.
