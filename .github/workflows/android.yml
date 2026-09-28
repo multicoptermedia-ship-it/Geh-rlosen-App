@@ -60,8 +60,8 @@ jobs:
           grep -q 'android.permission.RECORD_AUDIO' app/src/main/AndroidManifest.xml
           grep -q 'android:allowBackup="false"' app/src/main/AndroidManifest.xml
 
-      - name: Assemble debug APK
-        run: gradle --no-daemon :app:assembleDebug
+      - name: Assemble debug APK and release bundle
+        run: gradle --no-daemon :app:assembleDebug :app:bundleRelease
 
       - name: Verify built APK privacy
         shell: bash
@@ -80,6 +80,22 @@ jobs:
           cd app/build/outputs/apk/debug
           cp app-debug.apk Gespraech-Live-0.2.1-offline-test.apk
           sha256sum Gespraech-Live-0.2.1-offline-test.apk > Gespraech-Live-0.2.1-offline-test.apk.sha256
+
+      - name: Verify release bundle exists
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s "app/build/outputs/bundle/release/app-release.aab"
+          sha256sum app/build/outputs/bundle/release/app-release.aab > app/build/outputs/bundle/release/app-release.aab.sha256
+
+      - name: Upload unsigned release bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: gespraech-live-0.2.1-unsigned-release-aab
+          path: |
+            app/build/outputs/bundle/release/app-release.aab
+            app/build/outputs/bundle/release/app-release.aab.sha256
+          if-no-files-found: error
 
       - name: Upload smartphone test APK
         uses: actions/upload-artifact@v4
