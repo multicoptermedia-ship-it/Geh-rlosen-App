@@ -62,7 +62,7 @@ Die endgültigen Antworten im Google-Play-Formular „Datensicherheit“ müssen
 
 ## Vor Veröffentlichung noch erforderlich
 
-- öffentliche URL für die Datenschutzerklärung
+- Datenschutz-URL für Google Play: https://www.fotos-pur.de/datenschutz.html
 - Google-Play-Entwicklerkonto
 - App-Signierung / Play App Signing
 - endgültiges signiertes AAB
