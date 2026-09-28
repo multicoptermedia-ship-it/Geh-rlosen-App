@@ -88,10 +88,26 @@ private fun LiveTranscriptScreen() {
             onPartial = { text ->
                 activity.lifecycleScope.launch(Dispatchers.Main.immediate) { partialText = text }
             },
-            onFinal = { text ->
+            onFinal = { utterance ->
                 activity.lifecycleScope.launch(Dispatchers.Main.immediate) {
-                    if (text.isNotBlank()) transcript = transcript + TranscriptSegment(text = text)
+                    if (utterance.text.isNotBlank()) {
+                        transcript = transcript + TranscriptSegment(
+                            segmentId = utterance.segmentId,
+                            text = utterance.text
+                        )
+                    }
                     partialText = ""
+                }
+            },
+            onSpeaker = { assignment ->
+                activity.lifecycleScope.launch(Dispatchers.Main.immediate) {
+                    transcript = transcript.map { segment ->
+                        if (segment.segmentId == assignment.segmentId) {
+                            segment.copy(speakerId = assignment.speakerId)
+                        } else {
+                            segment
+                        }
+                    }
                 }
             },
             onStatus = { status ->
