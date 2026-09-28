@@ -63,6 +63,17 @@ jobs:
       - name: Assemble debug APK
         run: gradle --no-daemon :app:assembleDebug
 
+      - name: Verify built APK privacy
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="app/build/outputs/apk/debug/app-debug.apk"
+          test -s "$APK"
+          if unzip -p "$APK" AndroidManifest.xml | strings | grep -q 'android.permission.INTERNET'; then
+            echo "Privacy check failed: built APK contains INTERNET permission."
+            exit 1
+          fi
+
       - name: Name and checksum smartphone test APK
         shell: bash
         run: |
