@@ -5,7 +5,8 @@ interface OfflineSpeechEngine {
 
     fun start(
         onPartial: (String) -> Unit,
-        onFinal: (String) -> Unit,
+        onFinal: (RecognizedUtterance) -> Unit,
+        onSpeaker: (SpeakerAssignment) -> Unit,
         onStatus: (String) -> Unit,
         onError: (String) -> Unit,
         onReady: () -> Unit
