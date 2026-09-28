@@ -8,6 +8,7 @@ package de.multicoptermedia.gehoerlosenapp.speech
  * gender or identity.
  */
 data class TranscriptSegment(
+    val segmentId: Long? = null,
     val text: String,
     val speakerId: Int? = null,
     val isFinal: Boolean = true
