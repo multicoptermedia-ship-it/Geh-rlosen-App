@@ -1,5 +1,9 @@
 # Google Play – Veröffentlichungsunterlagen 0.2.1
 
+## Entwicklername
+
+MCM-Dronetech
+
 ## App-Name
 
 Gespräch Live
@@ -49,9 +53,15 @@ Barrierefreiheit / Kommunikation (endgültige Google-Play-Kategorie beim Eintrag
 
 Die endgültigen Antworten im Google-Play-Formular „Datensicherheit“ müssen anhand der dann veröffentlichten Binärdatei und der aktuellen Google-Play-Fragen geprüft werden.
 
+## Öffentliche Kontaktdaten
+
+- Unternehmen: MCM-Dronetech GmbH
+- Anschrift: Ahornweg 3, 50181 Bedburg, Deutschland
+- Support: info@mcm-dronetech.com
+- Website: https://www.mcm-dronetech.com
+
 ## Vor Veröffentlichung noch erforderlich
 
-- vollständige Firmenanschrift und Kontakt-E-Mail in der Datenschutzerklärung
 - öffentliche URL für die Datenschutzerklärung
 - Google-Play-Entwicklerkonto
 - App-Signierung / Play App Signing
