@@ -43,6 +43,12 @@ jobs:
           test -s "$MODEL_DIR/tokens.txt"
           test -s "app/src/main/assets/silero_vad.onnx"
 
+          # Speaker embedding model: WeSpeaker VoxCeleb ResNet34 (CC BY 4.0).
+          curl --fail --location --retry 3 \
+            "https://github.com/k2-fsa/sherpa-onnx/releases/download/speaker-recongition-models/wespeaker_en_voxceleb_resnet34.onnx" \
+            --output "app/src/main/assets/wespeaker_en_voxceleb_resnet34.onnx"
+          test -s "app/src/main/assets/wespeaker_en_voxceleb_resnet34.onnx"
+
       - name: Verify privacy manifest
         shell: bash
         run: |
