@@ -13,6 +13,12 @@ Bestätigte Funktionen:
 - Person 2 und weitere Sprecher-IDs wurden im Praxistest sichtbar
 - Pause/Weiter und die lokale Verarbeitung funktionieren
 
+## Installationstest
+
+Bei einer manuellen Installation des Test-APKs trat einmalig ein Installationsproblem auf. Nach einem Neustart des Android-11-Tablets ließ sich die App installieren und funktionierte anschließend normal. Der Fehler ist bisher nicht reproduziert und wird deshalb als Beobachtung dokumentiert, nicht als bestätigter App-Fehler.
+
+Für den nächsten Abnahmetest wird eine saubere Neuinstallation nach vorheriger Deinstallation geprüft.
+
 ## Beobachtungen / bekannte Einschränkungen
 
 - Die lokale Analyse erzeugt eine wahrnehmbare Verzögerung zwischen Sprache und Text.
