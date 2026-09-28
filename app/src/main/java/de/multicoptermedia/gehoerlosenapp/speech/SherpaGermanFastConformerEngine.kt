@@ -28,7 +28,7 @@ class SherpaGermanFastConformerEngine(
         private const val TOKENS = "$MODEL_DIR/tokens.txt"
         private const val VAD_MODEL = "silero_vad.onnx"
         private const val SPEAKER_MODEL = "wespeaker_en_voxceleb_resnet34.onnx"
-        private const val MIN_SPEAKER_SAMPLES = 16_000
+        private const val MIN_SPEAKER_SAMPLES = 12_000
         private const val SAMPLE_RATE = 16_000
     }
 
