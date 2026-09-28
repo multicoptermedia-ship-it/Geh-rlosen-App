@@ -81,6 +81,24 @@ jobs:
           cp app-debug.apk Gespraech-Live-0.2.1-offline-test.apk
           sha256sum Gespraech-Live-0.2.1-offline-test.apk > Gespraech-Live-0.2.1-offline-test.apk.sha256
 
+      - name: Sign release bundle when release secrets are configured
+        if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' && secrets.ANDROID_KEYSTORE_PASSWORD != '' && secrets.ANDROID_KEY_ALIAS != '' && secrets.ANDROID_KEY_PASSWORD != '' }}
+        shell: bash
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/release.keystore"
+          jarsigner -keystore "$RUNNER_TEMP/release.keystore" \
+            -storepass "$ANDROID_KEYSTORE_PASSWORD" \
+            -keypass "$ANDROID_KEY_PASSWORD" \
+            app/build/outputs/bundle/release/app-release.aab "$ANDROID_KEY_ALIAS"
+          jarsigner -verify -verbose -certs app/build/outputs/bundle/release/app-release.aab
+          rm -f "$RUNNER_TEMP/release.keystore"
+
       - name: Verify release bundle exists
         shell: bash
         run: |
