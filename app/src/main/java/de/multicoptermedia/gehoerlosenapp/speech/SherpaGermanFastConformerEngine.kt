@@ -37,6 +37,7 @@ class SherpaGermanFastConformerEngine(
     private val speakerTracker = LocalSpeakerTracker()
     private val started = AtomicBoolean(false)
     private val nextSegmentId = AtomicLong(0)
+    private val sessionGeneration = AtomicLong(0)
     private var recognizer: OfflineRecognizer? = null
     private var vad: Vad? = null
     @Volatile private var speakerEngine: SherpaSpeakerEmbeddingEngine? = null
@@ -58,6 +59,7 @@ class SherpaGermanFastConformerEngine(
         onReady: () -> Unit
     ) {
         if (!started.compareAndSet(false, true)) return
+        val activeGeneration = sessionGeneration.incrementAndGet()
         this.onPartial = onPartial
         this.onFinal = onFinal
         this.onSpeaker = onSpeaker
@@ -109,7 +111,7 @@ class SherpaGermanFastConformerEngine(
                         speakerTracker.reset()
                     }
                 }
-                if (started.get()) onReady() else releaseRecognizer()
+                if (started.get() && sessionGeneration.get() == activeGeneration) onReady() else releaseRecognizer()
             } catch (_: Throwable) {
                 started.set(false)
                 releaseRecognizer()
@@ -144,6 +146,7 @@ class SherpaGermanFastConformerEngine(
     }
 
     override fun stop() {
+        sessionGeneration.incrementAndGet()
         started.set(false)
         executor.execute {
             flushVad()
@@ -152,6 +155,7 @@ class SherpaGermanFastConformerEngine(
     }
 
     override fun release() {
+        sessionGeneration.incrementAndGet()
         started.set(false)
         executor.execute {
             flushVad()
@@ -176,11 +180,14 @@ class SherpaGermanFastConformerEngine(
                 // Text is delivered first. Speaker work runs independently afterwards.
                 if (audio.size >= MIN_SPEAKER_SAMPLES) {
                     val speakerAudio = audio.copyOf()
+                    val generation = sessionGeneration.get()
                     speakerExecutor.execute {
                         runCatching {
+                            if (!started.get() || sessionGeneration.get() != generation) return@runCatching
                             val embedding = speakerEngine?.compute(speakerAudio, SAMPLE_RATE)
+                            if (!started.get() || sessionGeneration.get() != generation) return@runCatching
                             val speakerId = embedding?.let(speakerTracker::assign)
-                            if (speakerId != null && started.get()) {
+                            if (speakerId != null && started.get() && sessionGeneration.get() == generation) {
                                 onSpeaker(SpeakerAssignment(segmentId, speakerId))
                             }
                         }
