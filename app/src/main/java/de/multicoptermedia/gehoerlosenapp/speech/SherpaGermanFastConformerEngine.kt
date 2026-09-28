@@ -27,14 +27,19 @@ class SherpaGermanFastConformerEngine(
         private const val MODEL = "$MODEL_DIR/model.int8.onnx"
         private const val TOKENS = "$MODEL_DIR/tokens.txt"
         private const val VAD_MODEL = "silero_vad.onnx"
+        private const val SPEAKER_MODEL = "wespeaker_en_voxceleb_resnet34.onnx"
+        private const val MIN_SPEAKER_SAMPLES = SAMPLE_RATE
         private const val SAMPLE_RATE = 16_000
     }
 
     private val executor = Executors.newSingleThreadExecutor()
+    private val speakerExecutor = Executors.newSingleThreadExecutor()
+    private val speakerTracker = LocalSpeakerTracker()
     private val started = AtomicBoolean(false)
     private val nextSegmentId = AtomicLong(0)
     private var recognizer: OfflineRecognizer? = null
     private var vad: Vad? = null
+    @Volatile private var speakerEngine: SherpaSpeakerEmbeddingEngine? = null
     private var onPartial: (String) -> Unit = {}
     private var onFinal: (RecognizedUtterance) -> Unit = {}
     private var onSpeaker: (SpeakerAssignment) -> Unit = {}
@@ -98,6 +103,12 @@ class SherpaGermanFastConformerEngine(
                         provider = "cpu"
                     )
                 )
+                runCatching {
+                    if (assetExists(SPEAKER_MODEL)) {
+                        speakerEngine = SherpaSpeakerEmbeddingEngine(context, SPEAKER_MODEL).also { it.start() }
+                        speakerTracker.reset()
+                    }
+                }
                 if (started.get()) onReady() else releaseRecognizer()
             } catch (_: Throwable) {
                 started.set(false)
@@ -147,6 +158,7 @@ class SherpaGermanFastConformerEngine(
             releaseRecognizer()
         }
         executor.shutdown()
+        speakerExecutor.shutdown()
     }
 
     private fun decodeSegment(audio: FloatArray) {
@@ -161,7 +173,19 @@ class SherpaGermanFastConformerEngine(
             if (text.isNotEmpty()) {
                 val segmentId = nextSegmentId.incrementAndGet()
                 onFinal(RecognizedUtterance(segmentId = segmentId, text = text))
-                // Speaker analysis is intentionally attached later. Text delivery must not wait for it.
+                // Text is delivered first. Speaker work runs independently afterwards.
+                if (audio.size >= MIN_SPEAKER_SAMPLES) {
+                    val speakerAudio = audio.copyOf()
+                    speakerExecutor.execute {
+                        runCatching {
+                            val embedding = speakerEngine?.compute(speakerAudio, SAMPLE_RATE)
+                            val speakerId = embedding?.let(speakerTracker::assign)
+                            if (speakerId != null && started.get()) {
+                                onSpeaker(SpeakerAssignment(segmentId, speakerId))
+                            }
+                        }
+                    }
+                }
             }
             onPartial("")
         } finally {
@@ -184,6 +208,9 @@ class SherpaGermanFastConformerEngine(
     private fun releaseRecognizer() {
         vad?.release()
         vad = null
+        speakerEngine?.release()
+        speakerEngine = null
+        speakerTracker.reset()
         recognizer?.release()
         recognizer = null
     }
