@@ -49,6 +49,7 @@ import de.multicoptermedia.gehoerlosenapp.speech.SherpaGermanFastConformerEngine
 import de.multicoptermedia.gehoerlosenapp.speech.TranscriptSegment
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 
 class MainActivity : ComponentActivity() {
@@ -198,8 +199,16 @@ private fun LiveTranscriptScreen() {
         }
     }
 
-    LaunchedEffect(transcript.size, partialText, followLive) {
-        if (followLive) scrollState.animateScrollTo(scrollState.maxValue)
+    LaunchedEffect(followLive) {
+        while (followLive) {
+            val remaining = scrollState.maxValue - scrollState.value
+            if (remaining > 0) {
+                // Follow the live conversation gently instead of jumping one block at a time.
+                val step = remaining.coerceAtMost(18)
+                scrollState.scrollTo(scrollState.value + step)
+            }
+            delay(16)
+        }
     }
 
     LaunchedEffect(scrollState) {
