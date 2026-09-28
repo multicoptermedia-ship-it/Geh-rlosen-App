@@ -11,6 +11,7 @@ import com.k2fsa.sherpa.onnx.Vad
 import com.k2fsa.sherpa.onnx.VadModelConfig
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicLong
 
 /**
  * Redistributable German ASR path based on NVIDIA FastConformer CTC.
@@ -31,10 +32,12 @@ class SherpaGermanFastConformerEngine(
 
     private val executor = Executors.newSingleThreadExecutor()
     private val started = AtomicBoolean(false)
+    private val nextSegmentId = AtomicLong(0)
     private var recognizer: OfflineRecognizer? = null
     private var vad: Vad? = null
     private var onPartial: (String) -> Unit = {}
-    private var onFinal: (String) -> Unit = {}
+    private var onFinal: (RecognizedUtterance) -> Unit = {}
+    private var onSpeaker: (SpeakerAssignment) -> Unit = {}
     private var onStatus: (String) -> Unit = {}
     private var onError: (String) -> Unit = {}
 
@@ -43,7 +46,8 @@ class SherpaGermanFastConformerEngine(
 
     override fun start(
         onPartial: (String) -> Unit,
-        onFinal: (String) -> Unit,
+        onFinal: (RecognizedUtterance) -> Unit,
+        onSpeaker: (SpeakerAssignment) -> Unit,
         onStatus: (String) -> Unit,
         onError: (String) -> Unit,
         onReady: () -> Unit
@@ -51,6 +55,7 @@ class SherpaGermanFastConformerEngine(
         if (!started.compareAndSet(false, true)) return
         this.onPartial = onPartial
         this.onFinal = onFinal
+        this.onSpeaker = onSpeaker
         this.onStatus = onStatus
         this.onError = onError
 
@@ -153,7 +158,11 @@ class SherpaGermanFastConformerEngine(
             stream.acceptWaveform(audio, SAMPLE_RATE)
             r.decode(stream)
             val text = r.getResult(stream).text.trim()
-            if (text.isNotEmpty()) onFinal(text)
+            if (text.isNotEmpty()) {
+                val segmentId = nextSegmentId.incrementAndGet()
+                onFinal(RecognizedUtterance(segmentId = segmentId, text = text))
+                // Speaker analysis is intentionally attached later. Text delivery must not wait for it.
+            }
             onPartial("")
         } finally {
             stream.release()
