@@ -6,7 +6,15 @@ Stand: 28. September 2026
 
 MCM-Dronetech GmbH
 
-Vor einer öffentlichen Veröffentlichung werden hier die vollständige ladungsfähige Anschrift und eine Datenschutz-Kontaktadresse des Verantwortlichen ergänzt.
+Ahornweg 3
+
+50181 Bedburg
+
+Deutschland
+
+E-Mail: info@mcm-dronetech.com
+
+Website: https://www.mcm-dronetech.com
 
 ## Zweck der App
 
@@ -48,6 +56,14 @@ Diese Datenschutzerklärung wird angepasst, wenn sich Funktionen oder Datenverar
 
 ## Kontakt
 
-Vor Veröffentlichung ergänzen:
-- vollständige Firmenanschrift
-- Datenschutz-/Support-E-Mail-Adresse
+MCM-Dronetech GmbH
+
+Ahornweg 3
+
+50181 Bedburg
+
+Deutschland
+
+E-Mail: info@mcm-dronetech.com
+
+Website: https://www.mcm-dronetech.com
