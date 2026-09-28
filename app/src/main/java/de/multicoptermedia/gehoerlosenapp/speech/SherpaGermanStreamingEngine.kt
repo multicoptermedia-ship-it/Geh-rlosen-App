@@ -9,6 +9,7 @@ import com.k2fsa.sherpa.onnx.OnlineStream
 import com.k2fsa.sherpa.onnx.OnlineTransducerModelConfig
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicLong
 
 /**
  * Local streaming German ASR backed by sherpa-onnx.
@@ -30,10 +31,12 @@ class SherpaGermanStreamingEngine(
 
     private val executor = Executors.newSingleThreadExecutor()
     private val started = AtomicBoolean(false)
+    private val nextSegmentId = AtomicLong(0)
     private var recognizer: OnlineRecognizer? = null
     private var stream: OnlineStream? = null
     private var onPartial: (String) -> Unit = {}
-    private var onFinal: (String) -> Unit = {}
+    private var onFinal: (RecognizedUtterance) -> Unit = {}
+    private var onSpeaker: (SpeakerAssignment) -> Unit = {}
     private var onStatus: (String) -> Unit = {}
     private var onError: (String) -> Unit = {}
     private var lastText = ""
@@ -43,7 +46,8 @@ class SherpaGermanStreamingEngine(
 
     override fun start(
         onPartial: (String) -> Unit,
-        onFinal: (String) -> Unit,
+        onFinal: (RecognizedUtterance) -> Unit,
+        onSpeaker: (SpeakerAssignment) -> Unit,
         onStatus: (String) -> Unit,
         onError: (String) -> Unit,
         onReady: () -> Unit
@@ -51,6 +55,7 @@ class SherpaGermanStreamingEngine(
         if (!started.compareAndSet(false, true)) return
         this.onPartial = onPartial
         this.onFinal = onFinal
+        this.onSpeaker = onSpeaker
         this.onStatus = onStatus
         this.onError = onError
 
@@ -105,7 +110,7 @@ class SherpaGermanStreamingEngine(
                 }
 
                 if (r.isEndpoint(s)) {
-                    if (text.isNotEmpty()) onFinal(text)
+                    if (text.isNotEmpty()) onFinal(RecognizedUtterance(nextSegmentId.incrementAndGet(), text))
                     r.reset(s)
                     lastText = ""
                     onPartial("")
@@ -126,7 +131,7 @@ class SherpaGermanStreamingEngine(
                     s.inputFinished()
                     while (r.isReady(s)) r.decode(s)
                     val text = r.getResult(s).text.trim()
-                    if (text.isNotEmpty()) onFinal(text)
+                    if (text.isNotEmpty()) onFinal(RecognizedUtterance(nextSegmentId.incrementAndGet(), text))
                 }
             }
             releaseRecognizer()
